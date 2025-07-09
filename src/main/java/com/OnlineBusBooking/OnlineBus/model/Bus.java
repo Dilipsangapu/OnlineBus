@@ -23,5 +23,8 @@ public class Bus {
     private String deckType;
     private String source;
     private String destination;
+    private double seaterFare;
+    private double sleeperFare;
+
 
 }

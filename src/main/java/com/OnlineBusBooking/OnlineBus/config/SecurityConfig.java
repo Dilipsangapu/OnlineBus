@@ -44,10 +44,11 @@ public class SecurityConfig {
             return new org.springframework.security.core.userdetails.User(
                     user.getEmail(),
                     user.getPassword(),
-                    List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole())) // ✅ add prefix
+                    List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase())) // ✅ Added .toUpperCase()
             );
         };
     }
+
 
     // ✅ Inject auth manager to wire with Spring's login system
     @Bean
@@ -85,16 +86,15 @@ public class SecurityConfig {
                                 "/admin-dashboard", "/agent-dashboard", "/process-login",
                                 "/css/**", "/js/**", "/images/**", "/fonts/**",
                                 "/buses/update/**", "/buses/edit/**",
-                                "/buses/api/search",
-                                "/api/auth/**", "/api/agents/**", "/api/buses/**",
-                                "/buses/api/**",
-                                "/api/routes/**",
-                                "/api/search-buses",
-                                "/api/seats/**",
-                                "/api/schedule/**",
-                                "/api/**",
-                                "/edit-bus/**", "/agent/**"
+                                "/buses/api/search", "/api/auth/**", "/api/agents/**",
+                                "/api/buses/**", "/buses/api/**", "/api/routes/**",
+                                "/api/search-buses", "/api/seats/**", "/api/schedule/**",
+                                "/api/**", "/edit-bus/**", "/agent/**",
+                                "/user/api/**" ,
+                                "/api/payments/**"
                         ).permitAll()
+
+                        .requestMatchers("/user/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

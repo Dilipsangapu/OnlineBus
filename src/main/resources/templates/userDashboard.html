@@ -1,35 +1,81 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>User Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-        font-family: 'Segoe UI', sans-serif;
-        padding: 40px;
-        background: #f0fdfd;
-    }
-    .dashboard {
-        max-width: 600px;
-        margin: auto;
-        background: white;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 0 12px rgba(0,0,0,0.08);
-        text-align: center;
-    }
-    h1 {
-        color: #00b39f;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/css/user.css" />
 </head>
-<body>
+<body th:data-email="${session.email}" th:data-name="${session.name}">
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>🎫 User</h2>
+    <ul>
+      <li class="active" onclick="showUserSection('search')">🔍 Search Buses</li>
+      <li onclick="showUserSection('bookings')">📖 My Bookings</li>
+      <li onclick="showUserSection('profile')">👤 Profile</li>
+      <li><a href="/logout">🚪 Logout</a></li>
+    </ul>
+  </aside>
 
-<div class="dashboard">
-  <h1 th:text="${welcomeMessage}">Welcome</h1>
-  <p>More features coming soon...</p>
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Search Buses -->
+    <section id="searchSection" class="user-section active">
+      <h2>🔍 Search Available Buses</h2>
+      <form id="searchForm" class="form-layout">
+        <input type="text" id="fromCity" placeholder="From City" required />
+        <input type="text" id="toCity" placeholder="To City" required />
+        <input type="date" id="travelDate" required />
+        <button type="submit" class="btn-submit">Search</button>
+      </form>
+
+      <div id="searchResults" class="search-results"></div>
+
+      <!-- Seat Layout Section -->
+      <div id="seatLayoutContainer" style="margin-top: 20px; display: none;">
+        <h3>Select Seats</h3>
+        <div>
+          <button onclick="renderSeatLayout('seater')">🪑 Seater</button>
+          <button onclick="renderSeatLayout('sleeper')">🛏️ Sleeper</button>
+        </div>
+
+        <!-- Seat Layout -->
+        <div id="seatLayout" style="margin-top: 10px;"></div>
+
+        <!-- Legend -->
+        <div id="seatLegend">
+          <div class="legend-item"><div class="legend-box legend-available"></div>Available</div>
+          <div class="legend-item"><div class="legend-box legend-booked"></div>Booked</div>
+          <div class="legend-item"><div class="legend-box legend-selected"></div>Selected</div>
+        </div>
+
+        <!-- Booking Summary -->
+        <p><strong>Selected Seats:</strong> <span id="selectedSeatsDisplay">None</span></p>
+        <p><strong>Total Fare:</strong> ₹<span id="totalFare">0</span></p>
+        <button id="confirmBookingBtn" onclick="confirmBooking()" disabled>✅ Confirm Booking</button>
+      </div>
+    </section>
+
+    <!-- My Bookings -->
+    <section id="bookingsSection" class="user-section">
+      <h2>📖 Your Bookings</h2>
+      <div id="bookingList"></div>
+    </section>
+
+    <!-- Profile -->
+    <section id="profileSection" class="user-section">
+      <h2>👤 Your Profile</h2>
+      <div class="profile-card">
+        <p><strong>Name:</strong> <span th:text="${session.name}"></span></p>
+        <p><strong>Email:</strong> <span th:text="${session.email}"></span></p>
+      </div>
+    </section>
+  </main>
 </div>
 
+<script src="/js/user.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </body>
 </html>

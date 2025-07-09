@@ -4,7 +4,6 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-
 @Data
 @Document(collection = "bookings")
 public class Booking {
@@ -15,9 +14,10 @@ public class Booking {
     private String customerName;
     private String customerEmail;
     private String bookingDate;
+    private String travelDate;   // ✅ NEW
     private String seatNumber;
     private double fare;
-    private String status; // e.g., CONFIRMED, CANCELLED
+    private String status;
+    private String seatType;
 
-    // Getters and Setters
 }

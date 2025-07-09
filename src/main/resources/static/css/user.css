@@ -1,0 +1,270 @@
+/* === GLOBAL STYLES === */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #a8edea, #5ee7df);
+  color: #333;
+  display: flex;
+  height: 100vh;
+}
+
+.dashboard-container {
+  display: flex;
+  width: 100%;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  width: 220px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar h2 {
+  font-size: 24px;
+  margin-bottom: 30px;
+  text-align: center;
+  color: #008c7a;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  background: #e0f7f5;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.sidebar li:hover,
+.sidebar li.active {
+  background: #5ee7df;
+  color: white;
+  font-weight: bold;
+}
+
+/* === MAIN CONTENT === */
+.main-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.user-section {
+  display: none;
+}
+
+.user-section.active {
+  display: block;
+}
+
+h2 {
+  color: #008c7a;
+  margin-bottom: 20px;
+}
+
+/* === FORM STYLES === */
+.form-layout {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.form-layout input,
+.form-layout select,
+.form-layout button {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-layout input:focus {
+  outline: none;
+  border-color: #5ee7df;
+}
+
+.btn-submit {
+  background-color: #008c7a;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-submit:hover {
+  background-color: #007066;
+}
+
+/* === RESULTS & CARDS === */
+#searchResults .bus-card,
+#bookingList .booking-card {
+  background: #e6fdfb;
+  padding: 16px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.bus-card h4 {
+  margin: 0;
+  color: #00695c;
+}
+
+.bus-card p {
+  margin: 5px 0;
+}
+
+.bus-card button {
+  margin-top: 10px;
+  background-color: #008c7a;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.bus-card button:hover {
+  background-color: #006e5a;
+}
+
+/* === TABLES === */
+.booking-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.booking-table th,
+.booking-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+.booking-table th {
+  background-color: #a8edea;
+  color: #00695c;
+}
+
+/* === PROFILE CARD === */
+.profile-card {
+  background: #e6fdfb;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.profile-card p {
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    padding: 10px;
+    box-shadow: none;
+  }
+
+  .sidebar ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+}
+
+/* === SEAT STYLING === */
+.seat-deck {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.seat-btn {
+  background-color: #d4fddf; /* ✅ Available */
+  border: 1px solid #58d39b;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.seat-btn:hover:not(.booked):not(.selected) {
+  background-color: #bffad3;
+}
+
+/* 🚫 Booked */
+.seat-btn.booked {
+  background-color: #999;
+  color: white;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* 🎟️ Selected */
+.seat-btn.selected {
+  background-color: #1e90ff;
+  color: white;
+  font-weight: bold;
+}
+
+/* === DECK TITLE === */
+.deck-title {
+  font-weight: bold;
+  font-size: 16px;
+  margin: 15px 0 8px;
+  color: #006e5a;
+}
+
+/* === LEGEND === */
+#seatLegend {
+  margin-top: 15px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.legend-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid #888;
+}
+
+/* Legend Colors */
+.legend-available { background-color: #d4fddf; }
+.legend-booked { background-color: #999; }
+.legend-selected { background-color: #1e90ff; }
