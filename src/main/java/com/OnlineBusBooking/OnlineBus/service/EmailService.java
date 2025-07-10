@@ -11,7 +11,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class EmailService {
@@ -19,61 +19,82 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendTicket(String toEmail, byte[] pdfBytes, String fileName, List<Booking> bookings, Bus bus) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+    public void sendTicket(String toEmail, byte[] pdfBytes, String fileName,
+                           List<Booking> bookings, Bus bus) throws MessagingException {
 
-        helper.setTo(toEmail);
-        helper.setSubject("🚌 Your Bus Ticket Confirmation");
+        if (bookings == null || bookings.isEmpty()) {
+            throw new IllegalArgumentException("No bookings to send");
+        }
 
-        String travelDate = bookings.get(0).getTravelDate();
-        String passengerName = bookings.get(0).getCustomerName();
-        String bookingDate = bookings.get(0).getBookingDate();
+        Booking first = bookings.get(0);
+        String passengerName = Optional.ofNullable(first.getPassengerName()).orElse("Valued Passenger");
+        String travelDate = Optional.ofNullable(first.getTravelDate()).orElse("N/A");
+        String bookingDate = travelDate; // You can replace with actual booking date if stored
         int passengerCount = bookings.size();
         double totalAmount = bookings.stream().mapToDouble(Booking::getFare).sum();
 
-        String seatDetails = bookings.stream()
-                .map(b -> b.getSeatNumber() + " (" + b.getSeatType() + ")")
-                .collect(Collectors.joining(", "));
+        StringBuilder passengerDetails = new StringBuilder();
+        for (Booking b : bookings) {
+            String name = Optional.ofNullable(b.getPassengerName()).orElse("N/A");
+            String age = String.valueOf(b.getPassengerAge()); // primitive int – always safe
+            String mobile = Optional.ofNullable(b.getPassengerMobile()).orElse("N/A");
+            String seat = Optional.ofNullable(b.getSeatNumber()).orElse("N/A");
+            String type = Optional.ofNullable(b.getSeatType()).orElse("N/A");
 
-        String emailBody = """
-                Dear %s,
+            passengerDetails.append("- ").append(name)
+                    .append(" (Age: ").append(age)
+                    .append(", Mobile: ").append(mobile)
+                    .append(", Seat: ").append(seat).append(" ").append(type).append(")\n");
+        }
 
-                Thank you for booking your journey with us through the Online Bus Booking platform.
+        String fromStop = Optional.ofNullable(first.getPassengerFrom()).orElse("N/A");
+        String toStop = Optional.ofNullable(first.getPassengerTo()).orElse("N/A");
 
-                📅 Travel Date: %s
-                🧾 Booking Date: %s
-                🚌 Route: %s → %s
-                🏢 Operator: %s
-                💺 Seat(s): %s
-                👥 Passenger Count: %d
-                💳 Amount Paid: ₹%.2f
+        String emailBody = String.format("""
+        Dear %s,
 
-                Your e-ticket (attached as PDF) contains:
-                - Passenger information
-                - Seat numbers and types
-                - Bus operator & timings
-                - QR code for quick verification
+        Thank you for booking your journey with us through the Online Bus Booking platform.
 
-                👉 Please carry a digital or printed copy of this ticket while boarding.
-                ✅ The QR code on the ticket can be scanned at the boarding point.
+        📅 Travel Date: %s
+        📋 Booking Date: %s
+        🚌 Route: %s → %s
+        🏢 Operator: %s
+        👥 Passenger Count: %d
+        💳 Amount Paid: ₹%.2f
 
-                For any assistance, feel free to reach us at: support@onlinebusbooking.com
+        Passenger Details:
+        %s
 
-                Wishing you a safe and comfortable journey!
-                — Online Bus Booking Team
-                """.formatted(
+        Your e-ticket (attached as PDF) contains:
+        - Passenger information
+        - Seat numbers and types
+        - Bus operator & timings
+        - QR code for quick verification
+
+        👉 Please carry a digital or printed copy of this ticket while boarding.
+        ✅ The QR code on the ticket can be scanned at the boarding point.
+
+        For any assistance, feel free to reach us at: support@onlinebusbooking.com
+
+        Wishing you a safe and comfortable journey!
+        — Online Bus Booking Team
+        """,
                 passengerName,
                 travelDate,
                 bookingDate,
-                bus.getSource(),
-                bus.getDestination(),
-                bus.getOperatorName(),
-                seatDetails,
+                fromStop,
+                toStop,
+                Optional.ofNullable(bus.getOperatorName()).orElse("N/A"),
                 passengerCount,
-                totalAmount
+                totalAmount,
+                passengerDetails.toString()
         );
 
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        helper.setTo(toEmail);
+        helper.setSubject("🚌 Your Bus Ticket Confirmation");
         helper.setText(emailBody);
         helper.addAttachment(fileName, new ByteArrayResource(pdfBytes));
 

@@ -18,6 +18,4 @@ public class Route {
     private String to;
     private List<String> stops;
     private String timings;
-
-
 }

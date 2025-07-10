@@ -5,11 +5,12 @@ body {
   background: linear-gradient(135deg, #a8edea, #5ee7df);
   color: #333;
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .dashboard-container {
   display: flex;
+  flex-direction: row;
   width: 100%;
 }
 
@@ -40,6 +41,7 @@ body {
   cursor: pointer;
   border-radius: 8px;
   transition: background 0.3s;
+  text-align: center;
 }
 
 .sidebar li:hover,
@@ -60,7 +62,6 @@ body {
 .user-section {
   display: none;
 }
-
 .user-section.active {
   display: block;
 }
@@ -70,7 +71,7 @@ h2 {
   margin-bottom: 20px;
 }
 
-/* === FORM STYLES === */
+/* === FORMS === */
 .form-layout {
   display: flex;
   gap: 10px;
@@ -87,7 +88,8 @@ h2 {
   font-size: 14px;
 }
 
-.form-layout input:focus {
+.form-layout input:focus,
+.form-layout select:focus {
   outline: none;
   border-color: #5ee7df;
 }
@@ -99,30 +101,25 @@ h2 {
   cursor: pointer;
   transition: background 0.2s ease;
 }
-
 .btn-submit:hover {
   background-color: #007066;
 }
 
-/* === RESULTS & CARDS === */
-#searchResults .bus-card,
-#bookingList .booking-card {
+/* === SEARCH RESULTS / BUS CARDS === */
+.bus-card {
   background: #e6fdfb;
   padding: 16px;
   margin-bottom: 15px;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
-
 .bus-card h4 {
   margin: 0;
   color: #00695c;
 }
-
 .bus-card p {
   margin: 5px 0;
 }
-
 .bus-card button {
   margin-top: 10px;
   background-color: #008c7a;
@@ -132,71 +129,11 @@ h2 {
   border-radius: 5px;
   cursor: pointer;
 }
-
 .bus-card button:hover {
   background-color: #006e5a;
 }
 
-/* === TABLES === */
-.booking-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.booking-table th,
-.booking-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: center;
-}
-
-.booking-table th {
-  background-color: #a8edea;
-  color: #00695c;
-}
-
-/* === PROFILE CARD === */
-.profile-card {
-  background: #e6fdfb;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
-}
-
-.profile-card p {
-  margin: 10px 0;
-  font-size: 16px;
-}
-
-/* === RESPONSIVE === */
-@media (max-width: 768px) {
-  .dashboard-container {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    padding: 10px;
-    box-shadow: none;
-  }
-
-  .sidebar ul {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-  }
-
-  .main-content {
-    padding: 20px;
-  }
-}
-
-/* === SEAT STYLING === */
+/* === SEAT LAYOUT === */
 .seat-deck {
   display: flex;
   flex-wrap: wrap;
@@ -205,36 +142,31 @@ h2 {
 }
 
 .seat-btn {
-  background-color: #d4fddf; /* ✅ Available */
+  background-color: #d4fddf;
   border: 1px solid #58d39b;
   padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
   font-size: 14px;
   font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .seat-btn:hover:not(.booked):not(.selected) {
   background-color: #bffad3;
 }
-
-/* 🚫 Booked */
 .seat-btn.booked {
   background-color: #999;
   color: white;
   cursor: not-allowed;
   text-decoration: line-through;
 }
-
-/* 🎟️ Selected */
 .seat-btn.selected {
   background-color: #1e90ff;
   color: white;
   font-weight: bold;
 }
 
-/* === DECK TITLE === */
 .deck-title {
   font-weight: bold;
   font-size: 16px;
@@ -248,6 +180,7 @@ h2 {
   display: flex;
   gap: 15px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .legend-item {
@@ -264,7 +197,143 @@ h2 {
   border: 1px solid #888;
 }
 
-/* Legend Colors */
 .legend-available { background-color: #d4fddf; }
 .legend-booked { background-color: #999; }
 .legend-selected { background-color: #1e90ff; }
+
+/* === PASSENGER FORM === */
+.passenger-input-block {
+  background-color: #f2fefc;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.passenger-input-block label {
+  display: block;
+  margin: 8px 0;
+}
+
+.passenger-input-block input,
+.passenger-input-block select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.passenger-input-block p {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* === CONFIRM BUTTON === */
+#confirmBookingBtn {
+  margin-top: 20px;
+  padding: 12px 20px;
+  font-size: 16px;
+  background-color: #008c7a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+#confirmBookingBtn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+#confirmBookingBtn:hover:enabled {
+  background-color: #006e5a;
+}
+
+/* === BOOKINGS TABLE === */
+.booking-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+.booking-table th,
+.booking-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+.booking-table th {
+  background-color: #a8edea;
+  color: #00695c;
+}
+
+/* === PROFILE === */
+.profile-card {
+  background: #e6fdfb;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+.profile-card p {
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+/* === RESPONSIVE STYLES === */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    box-shadow: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 10px;
+  }
+
+  .sidebar ul {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0;
+    width: 100%;
+  }
+
+  .sidebar li {
+    flex: 1 1 45%;
+    margin: 5px;
+    text-align: center;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+
+  .form-layout {
+    flex-direction: column;
+  }
+
+  .seat-deck {
+    justify-content: center;
+  }
+
+  .passenger-input-block input,
+  .passenger-input-block select {
+    max-width: 100%;
+  }
+
+  .booking-table {
+    font-size: 13px;
+  }
+
+  .booking-table th,
+  .booking-table td {
+    padding: 6px;
+  }
+}

@@ -7,17 +7,24 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @Document(collection = "bookings")
 public class Booking {
+
     @Id
     private String id;
 
     private String busId;
-    private String customerName;
+    private String travelDate;
     private String customerEmail;
-    private String bookingDate;
-    private String travelDate;   // ✅ NEW
-    private String seatNumber;
-    private double fare;
-    private String status;
-    private String seatType;
 
+    private String seatNumber;
+    private String seatType;
+    private double fare;
+
+    private String passengerName;
+    private int passengerAge;
+    private String passengerMobile;
+
+    private String passengerFrom; // ✅ ADDED
+    private String passengerTo;   // ✅ ADDED
+    private String passengerEmail;
+    private String status;
 }

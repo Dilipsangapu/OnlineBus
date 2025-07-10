@@ -24,7 +24,9 @@ import java.util.Optional;
 public class TicketPDFGenerator {
 
     public static byte[] generateTicketPDF(List<Booking> bookings, Bus bus, TripSchedule schedule) throws Exception {
-        if (bookings.isEmpty()) throw new IllegalArgumentException("No bookings provided");
+        if (bookings == null || bookings.isEmpty()) {
+            throw new IllegalArgumentException("No bookings provided");
+        }
 
         Booking first = bookings.get(0);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -32,7 +34,7 @@ public class TicketPDFGenerator {
         PdfDocument pdfDoc = new PdfDocument(writer);
         Document doc = new Document(pdfDoc);
 
-        // Add Logo
+        // Logo
         InputStream logoStream = TicketPDFGenerator.class.getResourceAsStream("/static/logo.png");
         if (logoStream != null) {
             Image logo = new Image(ImageDataFactory.create(logoStream.readAllBytes()));
@@ -48,81 +50,93 @@ public class TicketPDFGenerator {
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFontColor(ColorConstants.DARK_GRAY));
 
+        // Determine route with fallback
+        String source = bus.getSource() != null ? bus.getSource() : first.getPassengerFrom();
+        String destination = bus.getDestination() != null ? bus.getDestination() : first.getPassengerTo();
+        if (source == null) source = "Unknown";
+        if (destination == null) destination = "Unknown";
+        String route = source + " → " + destination;
+
         // Trip Info Table
         Table tripTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}))
                 .useAllAvailableWidth().setMarginTop(5);
 
-        tripTable.addCell(new Cell().add(new Paragraph("Operator:").setBold()));
-        tripTable.addCell(new Cell().add(new Paragraph(
-                Optional.ofNullable(bus.getOperatorName()).orElse("N/A"))));
+        tripTable.addCell(getCell("Operator:", true));
+        tripTable.addCell(getCell(Optional.ofNullable(bus.getOperatorName()).orElse("N/A"), false));
 
-        tripTable.addCell(new Cell().add(new Paragraph("Route:").setBold()));
-        tripTable.addCell(new Cell().add(new Paragraph(
-                Optional.ofNullable(bus.getSource()).orElse("N/A") + " → " +
-                        Optional.ofNullable(bus.getDestination()).orElse("N/A"))));
+        tripTable.addCell(getCell("Route:", true));
+        tripTable.addCell(getCell(route, false));
 
-        tripTable.addCell(new Cell().add(new Paragraph("Departure:").setBold()));
-        tripTable.addCell(new Cell().add(new Paragraph(
-                Optional.ofNullable(schedule.getDepartureTime()).orElse("N/A"))));
+        tripTable.addCell(getCell("Departure:", true));
+        tripTable.addCell(getCell(Optional.ofNullable(schedule.getDepartureTime()).orElse("N/A"), false));
 
-        tripTable.addCell(new Cell().add(new Paragraph("Arrival:").setBold()));
-        tripTable.addCell(new Cell().add(new Paragraph(
-                Optional.ofNullable(schedule.getArrivalTime()).orElse("N/A"))));
+        tripTable.addCell(getCell("Arrival:", true));
+        tripTable.addCell(getCell(Optional.ofNullable(schedule.getArrivalTime()).orElse("N/A"), false));
 
-        tripTable.addCell(new Cell().add(new Paragraph("Travel Date:").setBold()));
-        tripTable.addCell(new Cell().add(new Paragraph(
-                Optional.ofNullable(first.getTravelDate()).orElse("N/A"))));
+        tripTable.addCell(getCell("Travel Date:", true));
+        tripTable.addCell(getCell(Optional.ofNullable(first.getTravelDate()).orElse("N/A"), false));
 
-        tripTable.addCell(new Cell().add(new Paragraph("Booking Date:").setBold()));
-        tripTable.addCell(new Cell().add(new Paragraph(
-                Optional.ofNullable(first.getBookingDate()).orElse("N/A"))));
+        tripTable.addCell(getCell("Booking Date:", true));
+        tripTable.addCell(getCell(Optional.ofNullable(first.getTravelDate()).orElse("N/A"), false));
 
         doc.add(tripTable);
 
         // Passenger Info
         doc.add(new Paragraph("\n👤 Passenger Info").setBold().setFontSize(12));
-
-        Table passengerTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}))
+        Table passengerTable = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1, 1}))
                 .useAllAvailableWidth();
-        passengerTable.addCell(new Cell().add(new Paragraph("Name:").setBold()));
-        passengerTable.addCell(new Cell().add(new Paragraph(
-                Optional.ofNullable(first.getCustomerName()).orElse("N/A"))));
 
-        passengerTable.addCell(new Cell().add(new Paragraph("Email:").setBold()));
-        passengerTable.addCell(new Cell().add(new Paragraph(
-                Optional.ofNullable(first.getCustomerEmail()).orElse("N/A"))));
+        passengerTable.addHeaderCell(getHeaderCell("Name"));
+        passengerTable.addHeaderCell(getHeaderCell("Email"));
+        passengerTable.addHeaderCell(getHeaderCell("Age"));
+        passengerTable.addHeaderCell(getHeaderCell("Mobile"));
+
+        for (Booking booking : bookings) {
+            passengerTable.addCell(getCell(Optional.ofNullable(booking.getPassengerName()).orElse("N/A"), false));
+            passengerTable.addCell(getCell(Optional.ofNullable(booking.getCustomerEmail()).orElse("N/A"), false));
+            passengerTable.addCell(getCell(
+                    booking.getPassengerAge() > 0 ? String.valueOf(booking.getPassengerAge()) : "N/A", false));
+            passengerTable.addCell(getCell(Optional.ofNullable(booking.getPassengerMobile()).orElse("N/A"), false));
+        }
+
         doc.add(passengerTable);
 
-        // Booked Seats
-        doc.add(new Paragraph("\n💺 Booked Seats").setBold().setFontSize(12));
-        Table seatsTable = new Table(UnitValue.createPercentArray(new float[]{1, 1, 1}))
+        // Booked Seats Table
+        doc.add(new Paragraph("\n💼 Booked Seats").setBold().setFontSize(12));
+        Table seatsTable = new Table(UnitValue.createPercentArray(new float[]{1, 1, 1, 2}))
                 .useAllAvailableWidth().setMarginBottom(10);
 
-        seatsTable.addHeaderCell(new Cell().add(new Paragraph("Seat No.").setBold()));
-        seatsTable.addHeaderCell(new Cell().add(new Paragraph("Type").setBold()));
-        seatsTable.addHeaderCell(new Cell().add(new Paragraph("Fare (₹)").setBold()));
+        seatsTable.addHeaderCell(getHeaderCell("Seat No."));
+        seatsTable.addHeaderCell(getHeaderCell("Type"));
+        seatsTable.addHeaderCell(getHeaderCell("Fare (₹)"));
+        seatsTable.addHeaderCell(getHeaderCell("From → To"));
 
         double totalFare = 0;
         for (Booking b : bookings) {
-            seatsTable.addCell(new Cell().add(new Paragraph(
-                    Optional.ofNullable(b.getSeatNumber()).orElse("N/A"))));
-            seatsTable.addCell(new Cell().add(new Paragraph(
-                    Optional.ofNullable(b.getSeatType()).orElse("N/A"))));
-            seatsTable.addCell(new Cell().add(new Paragraph(String.format("₹%.2f", b.getFare()))));
-            totalFare += b.getFare();
+            double fare = b.getFare();
+            totalFare += fare;
+
+            seatsTable.addCell(getCell(Optional.ofNullable(b.getSeatNumber()).orElse("N/A"), false));
+            seatsTable.addCell(getCell(Optional.ofNullable(b.getSeatType()).orElse("N/A"), false));
+            seatsTable.addCell(getCell(String.format("₹%.2f", fare), false));
+            seatsTable.addCell(getCell(
+                    Optional.ofNullable(b.getPassengerFrom()).orElse("N/A") + " → " +
+                            Optional.ofNullable(b.getPassengerTo()).orElse("N/A"), false));
         }
 
-        seatsTable.addCell(new Cell(1, 2).add(new Paragraph("Total").setBold()));
-        seatsTable.addCell(new Cell().add(new Paragraph(String.format("₹%.2f", totalFare)).setBold()));
+        seatsTable.addCell(new Cell(1, 3).add(new Paragraph("Total").setBold()));
+        seatsTable.addCell(getCell(String.format("₹%.2f", totalFare), true));
         doc.add(seatsTable);
 
         // QR Code
-        String qrContent = "Name: " + first.getCustomerName()
-                + " | Email: " + first.getCustomerEmail()
-                + " | Bus: " + bus.getOperatorName()
-                + " | Route: " + bus.getSource() + " → " + bus.getDestination()
-                + " | Travel Date: " + first.getTravelDate()
-                + " | Total Paid: ₹" + totalFare;
+        String qrContent = String.format("Name: %s | Email: %s | Bus: %s | Route: %s | Date: %s | Paid: ₹%.2f",
+                Optional.ofNullable(first.getPassengerName()).orElse("N/A"),
+                Optional.ofNullable(first.getCustomerEmail()).orElse("N/A"),
+                Optional.ofNullable(bus.getOperatorName()).orElse("N/A"),
+                route,
+                Optional.ofNullable(first.getTravelDate()).orElse("N/A"),
+                totalFare
+        );
 
         ByteArrayOutputStream qrOut = new ByteArrayOutputStream();
         var matrix = new QRCodeWriter().encode(qrContent, BarcodeFormat.QR_CODE, 100, 100);
@@ -139,14 +153,14 @@ public class TicketPDFGenerator {
 
 
     private static Cell getCell(String text, boolean isBold) {
-        Paragraph p = new Paragraph(text).setFontSize(10);
+        Paragraph p = new Paragraph(Optional.ofNullable(text).orElse("N/A")).setFontSize(10);
         if (isBold) p.setBold();
         return new Cell().add(p).setPadding(3).setTextAlignment(TextAlignment.LEFT);
     }
 
     private static Cell getHeaderCell(String text) {
         return new Cell()
-                .add(new Paragraph(text).setBold().setFontSize(10))
+                .add(new Paragraph(Optional.ofNullable(text).orElse("N/A")).setBold().setFontSize(10))
                 .setBackgroundColor(ColorConstants.LIGHT_GRAY)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setPadding(3);
