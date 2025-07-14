@@ -1,3 +1,4 @@
+
 let selectedBus = null;
 let editingBusId = null;
 let editingRouteId = null;
@@ -584,4 +585,3 @@ function loadBookings() {
       container.appendChild(table);
     });
 }
-

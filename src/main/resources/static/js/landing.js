@@ -1,3 +1,4 @@
+
 document.addEventListener("DOMContentLoaded", () => {
   const fromInput = document.querySelector('input[placeholder="Enter departure city"]');
   const toInput = document.querySelector('input[placeholder="Enter destination city"]');
