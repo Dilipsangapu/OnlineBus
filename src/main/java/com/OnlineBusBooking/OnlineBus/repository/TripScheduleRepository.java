@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface TripScheduleRepository extends MongoRepository<TripSchedule, String> {
     List<TripSchedule> findByBusId(String busId);
+    List<TripSchedule> findByBusIdIn(List<String> busIds);
     List<TripSchedule> findByRouteIdAndDate(String routeId, LocalDate date);
     List<TripSchedule> findByBusIdAndDate(String busId, LocalDate date);// ✅ ADDED
 }

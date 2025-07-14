@@ -34,13 +34,20 @@ public class TicketPDFGenerator {
         PdfDocument pdfDoc = new PdfDocument(writer);
         Document doc = new Document(pdfDoc);
 
-        // Logo
-        InputStream logoStream = TicketPDFGenerator.class.getResourceAsStream("/static/logo.png");
-        if (logoStream != null) {
-            Image logo = new Image(ImageDataFactory.create(logoStream.readAllBytes()));
-            logo.scaleToFit(60, 60);
-            logo.setHorizontalAlignment(HorizontalAlignment.CENTER);
-            doc.add(logo);
+        System.out.println("✅ Starting PDF generation...");
+
+        // Try loading logo
+        try (InputStream logoStream = TicketPDFGenerator.class.getResourceAsStream("/static/logo.png")) {
+            if (logoStream != null && logoStream.available() > 0) {
+                Image logo = new Image(ImageDataFactory.create(logoStream.readAllBytes()));
+                logo.scaleToFit(60, 60);
+                logo.setHorizontalAlignment(HorizontalAlignment.CENTER);
+                doc.add(logo);
+            } else {
+                System.out.println("⚠️ Logo not found or empty.");
+            }
+        } catch (Exception e) {
+            System.out.println("⚠️ Failed to load logo: " + e.getMessage());
         }
 
         // Title
@@ -50,62 +57,47 @@ public class TicketPDFGenerator {
                 .setTextAlignment(TextAlignment.CENTER)
                 .setFontColor(ColorConstants.DARK_GRAY));
 
-        // Determine route with fallback
-        String source = bus.getSource() != null ? bus.getSource() : first.getPassengerFrom();
-        String destination = bus.getDestination() != null ? bus.getDestination() : first.getPassengerTo();
-        if (source == null) source = "Unknown";
-        if (destination == null) destination = "Unknown";
+        String source = Optional.ofNullable(bus.getSource()).orElse(first.getPassengerFrom());
+        String destination = Optional.ofNullable(bus.getDestination()).orElse(first.getPassengerTo());
         String route = source + " → " + destination;
 
-        // Trip Info Table
-        Table tripTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}))
-                .useAllAvailableWidth().setMarginTop(5);
-
+        // Trip Info
+        Table tripTable = new Table(UnitValue.createPercentArray(new float[]{1, 2})).useAllAvailableWidth().setMarginTop(5);
         tripTable.addCell(getCell("Operator:", true));
         tripTable.addCell(getCell(Optional.ofNullable(bus.getOperatorName()).orElse("N/A"), false));
-
         tripTable.addCell(getCell("Route:", true));
         tripTable.addCell(getCell(route, false));
-
         tripTable.addCell(getCell("Departure:", true));
         tripTable.addCell(getCell(Optional.ofNullable(schedule.getDepartureTime()).orElse("N/A"), false));
-
         tripTable.addCell(getCell("Arrival:", true));
         tripTable.addCell(getCell(Optional.ofNullable(schedule.getArrivalTime()).orElse("N/A"), false));
-
         tripTable.addCell(getCell("Travel Date:", true));
         tripTable.addCell(getCell(Optional.ofNullable(first.getTravelDate()).orElse("N/A"), false));
-
         tripTable.addCell(getCell("Booking Date:", true));
         tripTable.addCell(getCell(Optional.ofNullable(first.getTravelDate()).orElse("N/A"), false));
-
         doc.add(tripTable);
 
         // Passenger Info
         doc.add(new Paragraph("\n👤 Passenger Info").setBold().setFontSize(12));
-        Table passengerTable = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1, 1}))
-                .useAllAvailableWidth();
-
+        Table passengerTable = new Table(UnitValue.createPercentArray(new float[]{1, 2, 1, 1})).useAllAvailableWidth();
         passengerTable.addHeaderCell(getHeaderCell("Name"));
         passengerTable.addHeaderCell(getHeaderCell("Email"));
         passengerTable.addHeaderCell(getHeaderCell("Age"));
         passengerTable.addHeaderCell(getHeaderCell("Mobile"));
 
-        for (Booking booking : bookings) {
-            passengerTable.addCell(getCell(Optional.ofNullable(booking.getPassengerName()).orElse("N/A"), false));
-            passengerTable.addCell(getCell(Optional.ofNullable(booking.getCustomerEmail()).orElse("N/A"), false));
-            passengerTable.addCell(getCell(
-                    booking.getPassengerAge() > 0 ? String.valueOf(booking.getPassengerAge()) : "N/A", false));
-            passengerTable.addCell(getCell(Optional.ofNullable(booking.getPassengerMobile()).orElse("N/A"), false));
+        for (Booking b : bookings) {
+            passengerTable.addCell(getCell(Optional.ofNullable(b.getPassengerName()).orElse("N/A"), false));
+            passengerTable.addCell(getCell(Optional.ofNullable(b.getCustomerEmail()).orElse("N/A"), false));
+            passengerTable.addCell(getCell(b.getPassengerAge() > 0 ? String.valueOf(b.getPassengerAge()) : "N/A", false));
+            passengerTable.addCell(getCell(Optional.ofNullable(b.getPassengerMobile()).orElse("N/A"), false));
         }
 
         doc.add(passengerTable);
 
-        // Booked Seats Table
+        // Booked Seats
         doc.add(new Paragraph("\n💼 Booked Seats").setBold().setFontSize(12));
         Table seatsTable = new Table(UnitValue.createPercentArray(new float[]{1, 1, 1, 2}))
                 .useAllAvailableWidth().setMarginBottom(10);
-
         seatsTable.addHeaderCell(getHeaderCell("Seat No."));
         seatsTable.addHeaderCell(getHeaderCell("Type"));
         seatsTable.addHeaderCell(getHeaderCell("Fare (₹)"));
@@ -115,13 +107,11 @@ public class TicketPDFGenerator {
         for (Booking b : bookings) {
             double fare = b.getFare();
             totalFare += fare;
-
             seatsTable.addCell(getCell(Optional.ofNullable(b.getSeatNumber()).orElse("N/A"), false));
             seatsTable.addCell(getCell(Optional.ofNullable(b.getSeatType()).orElse("N/A"), false));
             seatsTable.addCell(getCell(String.format("₹%.2f", fare), false));
-            seatsTable.addCell(getCell(
-                    Optional.ofNullable(b.getPassengerFrom()).orElse("N/A") + " → " +
-                            Optional.ofNullable(b.getPassengerTo()).orElse("N/A"), false));
+            seatsTable.addCell(getCell(Optional.ofNullable(b.getPassengerFrom()).orElse("N/A") + " → " +
+                    Optional.ofNullable(b.getPassengerTo()).orElse("N/A"), false));
         }
 
         seatsTable.addCell(new Cell(1, 3).add(new Paragraph("Total").setBold()));
@@ -148,8 +138,10 @@ public class TicketPDFGenerator {
         doc.add(qrImg);
 
         doc.close();
+        System.out.println("✅ PDF generated successfully.");
         return outputStream.toByteArray();
     }
+
 
 
     private static Cell getCell(String text, boolean isBold) {

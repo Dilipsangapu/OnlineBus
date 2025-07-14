@@ -326,8 +326,17 @@ function loadUserBookings() {
 // --------- DOWNLOAD TICKET ---------
 function downloadTicket(busId, date, seatNumber) {
   fetch(`/user/api/bookings/download-ticket?email=${userEmail}&busId=${busId}&travelDate=${date}&seatNumber=${seatNumber}`)
-    .then(res => res.blob())
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Invalid response: " + res.status);
+      }
+      return res.blob();
+    })
     .then(blob => {
+      if (blob.size === 0) {
+        throw new Error("Empty file.");
+      }
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -338,6 +347,6 @@ function downloadTicket(busId, date, seatNumber) {
     })
     .catch(err => {
       console.error("Ticket download failed:", err);
-      alert("❌ Download failed.");
+      alert("❌ Download failed. Ticket not found or server error.");
     });
 }

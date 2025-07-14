@@ -1,31 +1,54 @@
-// agent.js
 let selectedBus = null;
 let editingBusId = null;
 let editingRouteId = null;
 let editingStaffId = null;
 let editingScheduleId = null;
 
-
 function showSection(sectionId) {
   document.querySelectorAll(".dashboard-section").forEach(sec => sec.classList.remove("active"));
   document.querySelectorAll(".sidebar li").forEach(li => li.classList.remove("active"));
 
-  document.getElementById(sectionId + "Section").classList.add("active");
-  document.querySelector(`.sidebar li[onclick*="${sectionId}"]`).classList.add("active");
+  document.getElementById(sectionId + "Section")?.classList.add("active");
+  document.querySelector(`.sidebar li[onclick*="${sectionId}"]`)?.classList.add("active");
 
   if (sectionId === "dashboard") loadDashboardStats();
   if (sectionId === "buses") fetchBuses();
   if (sectionId === "layout") fetchBusesForLayout();
   if (sectionId === "routes") loadRoutes();
   if (sectionId === "staff") loadStaffSection();
-   if (sectionId === "schedule") loadScheduleSection();
-   if (sectionId === "bookings") loadBookings();
+  if (sectionId === "schedule") loadScheduleSection();
+  if (sectionId === "bookings") loadBookings();
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  showSection("dashboard");
+});
+
 function loadDashboardStats() {
-  document.getElementById("totalTrips").innerText = Math.floor(Math.random() * 30) + 5;
-  document.getElementById("monthlyRevenue").innerText = "₹" + (10000 + Math.floor(Math.random() * 50000));
+  const agentEmail = document.body.getAttribute("data-email");
+
+  fetch(`/agent/api/stats/${agentEmail}`)
+    .then(res => res.json())
+    .then(stats => {
+      const tripsEl = document.getElementById("totalTrips");
+      const revenueEl = document.getElementById("monthlyRevenue");
+      const busCountEl = document.getElementById("busCount");
+      const routeCountEl = document.getElementById("routeCount");
+      const bookingCountEl = document.getElementById("bookingCount");
+
+      if (tripsEl) tripsEl.innerText = stats.totalSchedules;
+      if (revenueEl) revenueEl.innerText = "₹" + stats.totalRevenue;
+      if (busCountEl) busCountEl.innerText = stats.totalBuses;
+      if (routeCountEl) routeCountEl.innerText = stats.totalRoutes;
+      if (bookingCountEl) bookingCountEl.innerText = stats.totalBookings;
+    })
+    .catch(err => {
+      console.error("Failed to load real stats:", err);
+      alert("❌ Could not load dashboard stats.");
+    });
 }
+
+
 
 // ---------------- BUS HANDLING ---------------- //
 function fetchBuses() {
@@ -517,52 +540,48 @@ document.getElementById("saveScheduleBtn")?.addEventListener("click", async () =
 function loadBookings() {
   const agentId = document.body.getAttribute("data-email");
 
-  fetch(`/buses/api/by-operator/${agentId}`)
+  fetch(`/agent/api/bookings/by-agent/${agentId}`)
     .then(res => res.json())
-    .then(buses => {
+    .then(bookings => {
       const container = document.getElementById("bookingList");
       container.innerHTML = "";
 
-      buses.forEach(bus => {
-        fetch(`/api/bookings/by-bus/${bus.id}`)
-          .then(res => res.json())
-          .then(bookings => {
-            if (bookings.length === 0) return;
+      if (bookings.length === 0) {
+        container.innerHTML = "<p>No bookings found for your buses.</p>";
+        return;
+      }
 
-            const section = document.createElement("div");
-            section.innerHTML = `<h4>🚌 ${bus.busName}</h4>`;
+      const table = document.createElement("table");
+      table.className = "route-table";
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Passenger</th><th>Email</th><th>Mobile</th>
+            <th>From</th><th>To</th>
+            <th>Seat</th><th>Fare</th><th>Status</th><th>Date</th>
+          </tr>
+        </thead>
+      `;
 
-            const table = document.createElement("table");
-            table.className = "route-table";
-            table.innerHTML = `
-              <thead>
-                <tr>
-                  <th>Customer</th><th>Email</th><th>Date</th>
-                  <th>Seat</th><th>Fare</th><th>Status</th>
-                </tr>
-              </thead>`;
-
-            const tbody = document.createElement("tbody");
-            bookings.forEach(b => {
-              const row = document.createElement("tr");
-              row.innerHTML = `
-                <td>${b.customerName}</td>
-                <td>${b.customerEmail}</td>
-                <td>${b.bookingDate}</td>
-                <td>${b.seatNumber}</td>
-                <td>₹${b.fare}</td>
-                <td>${b.status}</td>
-              `;
-              tbody.appendChild(row);
-            });
-
-            table.appendChild(tbody);
-            section.appendChild(table);
-            container.appendChild(section);
-          });
+      const tbody = document.createElement("tbody");
+      bookings.forEach(b => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${b.passengerName}</td>
+          <td>${b.email}</td>
+          <td>${b.passengerMobile}</td>
+          <td>${b.routeFrom}</td>
+          <td>${b.routeTo}</td>
+          <td>${b.seatNumber}</td>
+          <td>₹${b.fare}</td>
+          <td>${b.status}</td>
+          <td>${b.travelDate}</td>
+        `;
+        tbody.appendChild(row);
       });
+
+      table.appendChild(tbody);
+      container.appendChild(table);
     });
 }
-document.addEventListener("DOMContentLoaded", () => {
-  showSection("dashboard");
-});
+

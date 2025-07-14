@@ -8,7 +8,8 @@ import java.util.List;
 public interface RouteRepository extends MongoRepository<Route, String> {
     List<Route> findByBusId(String busId);
     List<Route> findByFromIgnoreCaseAndToIgnoreCase(String from, String to);
-    List<Route> findByFromAndTo(String from, String to);
+    List<Route> findByBusIdIn(List<String> busIds);
+
 
 
 }

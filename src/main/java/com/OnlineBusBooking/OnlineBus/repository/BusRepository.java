@@ -10,4 +10,5 @@ public interface BusRepository extends MongoRepository<Bus, String> {
     List<Bus> findByOperatorId(String operatorId);
     List<Bus> findAll();
     List<Bus> findBySourceIgnoreCaseAndDestinationIgnoreCase(String source, String destination);
+
 }

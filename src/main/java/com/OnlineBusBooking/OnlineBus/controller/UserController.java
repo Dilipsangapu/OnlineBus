@@ -145,14 +145,16 @@ public class UserController {
     public List<Map<String, Object>> getBookingsByUser(@PathVariable String email) {
         List<Booking> bookings = bookingRepository.findByCustomerEmail(email);
         List<Map<String, Object>> enriched = new ArrayList<>();
+
         for (Booking booking : bookings) {
             Optional<Bus> busOpt = busRepository.findById(booking.getBusId());
-            String busName = busOpt.map(Bus::getBusName).orElse("Unknown Bus");
 
-            String routeFrom = busOpt.map(Bus::getSource).orElse("-");
-            String routeTo = busOpt.map(Bus::getDestination).orElse("-");
+            String busName = busOpt.map(Bus::getBusName).orElse("Unknown Bus");
+            String routeFrom = booking.getPassengerFrom();
+            String routeTo = booking.getPassengerTo();
 
             Map<String, Object> entry = new HashMap<>();
+            entry.put("busId", booking.getBusId()); // ✅ ADDED: Needed for ticket download
             entry.put("busName", busName);
             entry.put("routeFrom", routeFrom);
             entry.put("routeTo", routeTo);
@@ -160,16 +162,17 @@ public class UserController {
             entry.put("seatNumber", booking.getSeatNumber());
             entry.put("fare", booking.getFare());
             entry.put("status", booking.getStatus());
-            entry.put("busId", booking.getBusId());
-            entry.put("passengerFrom", booking.getPassengerFrom());
-            entry.put("passengerTo", booking.getPassengerTo());
+            entry.put("passengerName", booking.getPassengerName());
+            entry.put("passengerMobile", booking.getPassengerMobile());
+            entry.put("email", booking.getCustomerEmail());
 
             enriched.add(entry);
         }
 
-
         return enriched;
     }
+
+
 
     @PostMapping("/api/bookings/book")
     @ResponseBody
@@ -285,8 +288,6 @@ public class UserController {
             return ResponseEntity.status(500).body("❌ Failed to generate/send ticket.");
         }
     }
-
-
     @GetMapping("/api/bookings/download-ticket")
     public ResponseEntity<byte[]> downloadTicket(@RequestParam String email,
                                                  @RequestParam String busId,
@@ -299,7 +300,9 @@ public class UserController {
                 .findFirst();
 
         Optional<Bus> busOpt = busRepository.findById(busId);
-        List<TripSchedule> schedules = tripScheduleRepository.findByBusIdAndDate(busId, LocalDate.parse(travelDate));
+
+        LocalDate date = LocalDate.parse(travelDate); // ✅ Ensure valid format
+        List<TripSchedule> schedules = tripScheduleRepository.findByBusIdAndDate(busId, date);
 
         if (bookingOpt.isEmpty() || busOpt.isEmpty() || schedules.isEmpty()) {
             return ResponseEntity.badRequest().build();

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Agent Dashboard</title>
     <link rel="stylesheet" href="/css/agent.css" />
+    <script src="/js/agent.js" defer></script> <!-- ✅ FIXED: added defer -->
 </head>
 <body th:data-email="${session.email}" th:data-name="${session.name}">
 <div class="dashboard-wrapper">
@@ -26,18 +27,31 @@
     <main class="main-content">
         <!-- Dashboard -->
         <section id="dashboardSection" class="dashboard-section active">
-            <h2>📊 Dashboard</h2>
+            <h2>📊 Stats</h2>
             <div class="grid-2">
                 <div class="card">
                     <h3>Total Trips</h3>
                     <p id="totalTrips">0</p>
                 </div>
                 <div class="card">
-                    <h3>Monthly Revenue</h3>
+                    <h3>Total Revenue</h3>
                     <p id="monthlyRevenue">₹0</p>
+                </div>
+                <div class="card">
+                    <h3>Total Buses</h3>
+                    <p id="busCount">0</p>
+                </div>
+                <div class="card">
+                    <h3>Total Routes</h3>
+                    <p id="routeCount">0</p>
+                </div>
+                <div class="card">
+                    <h3>Total Bookings</h3>
+                    <p id="bookingCount">0</p>
                 </div>
             </div>
         </section>
+
 
         <!-- Buses -->
         <!-- Buses -->
@@ -162,6 +176,5 @@
 
     </main>
 </div>
-<script src="/js/agent.js"></script>
 </body>
 </html>

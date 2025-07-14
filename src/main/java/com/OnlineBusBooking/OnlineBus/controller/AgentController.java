@@ -1,10 +1,8 @@
 
 package com.OnlineBusBooking.OnlineBus.controller;
 
-import com.OnlineBusBooking.OnlineBus.model.Bus;
-import com.OnlineBusBooking.OnlineBus.model.User;
-import com.OnlineBusBooking.OnlineBus.repository.BusRepository;
-import com.OnlineBusBooking.OnlineBus.repository.UserRepository;
+import com.OnlineBusBooking.OnlineBus.model.*;
+import com.OnlineBusBooking.OnlineBus.repository.*;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 @RequestMapping("/agent")
@@ -120,4 +117,68 @@ public class AgentController {
     public List<User> getOnlyAgents() {
         return userRepository.findByRole("agent");
     }
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @GetMapping("/api/bookings/by-agent/{email}")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getBookingsByAgent(@PathVariable String email) {
+        List<Bus> buses = busRepository.findByOperatorId(email);
+        List<String> busIds = buses.stream().map(Bus::getId).toList();
+        List<Booking> bookings = bookingRepository.findByBusIdIn(busIds);
+
+        List<Map<String, Object>> enriched = new ArrayList<>();
+
+        for (Booking booking : bookings) {
+            Optional<Bus> busOpt = busRepository.findById(booking.getBusId());
+
+            String busName = busOpt.map(Bus::getBusName).orElse("Unknown Bus");
+            String routeFrom = booking.getPassengerFrom();
+            String routeTo = booking.getPassengerTo();
+
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("busName", busName);
+            entry.put("routeFrom", routeFrom);
+            entry.put("routeTo", routeTo);
+            entry.put("travelDate", booking.getTravelDate());
+            entry.put("seatNumber", booking.getSeatNumber());
+            entry.put("fare", booking.getFare());
+            entry.put("status", booking.getStatus());
+            entry.put("passengerName", booking.getPassengerName());
+            entry.put("passengerMobile", booking.getPassengerMobile());
+            entry.put("email", booking.getCustomerEmail());
+
+            enriched.add(entry);
+        }
+
+        return ResponseEntity.ok(enriched);
+    }
+    @Autowired
+    private RouteRepository routeRepository;
+    @Autowired
+    private TripScheduleRepository tripScheduleRepository;
+    @GetMapping("/api/stats/{agentEmail}")
+    @ResponseBody
+    public Map<String, Object> getAgentStats(@PathVariable String agentEmail) {
+        Map<String, Object> stats = new HashMap<>();
+
+        List<Bus> buses = busRepository.findByOperatorId(agentEmail);
+        List<String> busIds = buses.stream().map(Bus::getId).toList();
+
+        List<Route> routes = routeRepository.findByBusIdIn(busIds);
+        List<TripSchedule> schedules = tripScheduleRepository.findByBusIdIn(busIds);
+        List<Booking> bookings = bookingRepository.findByBusIdIn(busIds);
+
+        double totalRevenue = bookings.stream().mapToDouble(Booking::getFare).sum();
+
+        stats.put("totalBuses", buses.size());
+        stats.put("totalRoutes", routes.size());
+        stats.put("totalSchedules", schedules.size());
+        stats.put("totalBookings", bookings.size());
+        stats.put("totalRevenue", Math.round(totalRevenue));
+
+        return stats;
+    }
+
+
 }
