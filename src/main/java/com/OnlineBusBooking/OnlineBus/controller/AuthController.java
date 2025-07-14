@@ -143,7 +143,7 @@ public class AuthController {
         return serverUrl.replace(path, "");
     }
     @PostMapping("/forgot-password")
-    public String processForgotPassword(@RequestParam("email") String email, Model model) {
+    public String processForgotPassword(@RequestParam("email") String email, Model model, HttpServletRequest request) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
@@ -151,7 +151,12 @@ public class AuthController {
             user.setResetToken(token);
             userRepository.save(user);
 
+            // ✅ Dynamically generate base URL from request
+            String baseUrl = request.getScheme() + "://" + request.getServerName()
+                    + (request.getServerPort() != 80 && request.getServerPort() != 443 ? ":" + request.getServerPort() : "");
+
             String resetLink = baseUrl + "/reset-password?token=" + token;
+
             String body = "Hi " + user.getName() + ",\n\n"
                     + "Click the link below to reset your password:\n"
                     + resetLink + "\n\n"
@@ -159,13 +164,13 @@ public class AuthController {
                     + "— Online Bus Booking Team";
 
             emailService.sendEmail(user.getEmail(), "🔐 Password Reset Request", body);
-
             model.addAttribute("message", "A reset link has been sent to your email.");
         } else {
             model.addAttribute("error", "Email not registered.");
         }
         return "forgot-password";
     }
+
 
     // ✅ Reset Password - Form
     @GetMapping("/reset-password")
