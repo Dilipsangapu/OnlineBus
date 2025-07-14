@@ -79,8 +79,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
+                .csrf(csrf -> csrf.disable()).authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/register", "/login", "/dashboard",
                                 "/admin-dashboard", "/agent-dashboard", "/process-login",
@@ -90,15 +89,19 @@ public class SecurityConfig {
                                 "/api/buses/**", "/buses/api/**", "/api/routes/**",
                                 "/api/search-buses", "/api/seats/**", "/api/schedule/**",
                                 "/api/**", "/edit-bus/**", "/agent/**",
-                                "/user/api/**" ,
-                                "/user/api/search-buses",
                                 "/forgot-password", "/reset-password",
                                 "/api/payments/**"
                         ).permitAll()
 
+                        // ✅ Explicitly allow /user/api/** BEFORE /user/**
+                        .requestMatchers("/user/api/**").permitAll()
+
+                        // ✅ Protect other /user/** endpoints
                         .requestMatchers("/user/**").hasRole("USER")
+
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler(successHandler)
