@@ -80,14 +80,6 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-
-                // 🔒 Force HTTPS when behind Railway proxy
-                .requiresChannel(channel ->
-                        channel
-                                .requestMatchers(r -> r.getHeader("X-Forwarded-Proto") != null)
-                                .requiresSecure()
-                )
-
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/register", "/login", "/dashboard",
@@ -98,20 +90,20 @@ public class SecurityConfig {
                                 "/api/buses/**", "/buses/api/**", "/api/routes/**",
                                 "/api/search-buses", "/api/seats/**", "/api/schedule/**",
                                 "/api/**", "/edit-bus/**", "/agent/**",
-                                "/user/api/**",
+                                "/user/api/**" ,
+                                "/user/api/search-buses",
                                 "/forgot-password", "/reset-password",
                                 "/api/payments/**"
                         ).permitAll()
+
                         .requestMatchers("/user/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
-
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler(successHandler)
                         .permitAll()
                 )
-
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
@@ -119,7 +111,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
