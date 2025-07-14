@@ -1,17 +1,24 @@
 package com.OnlineBusBooking.OnlineBus.controller;
 
 import com.OnlineBusBooking.OnlineBus.model.User;
+import com.OnlineBusBooking.OnlineBus.repository.UserRepository;
 import com.OnlineBusBooking.OnlineBus.service.AuthService;
+import com.OnlineBusBooking.OnlineBus.service.EmailService;
 import com.OnlineBusBooking.OnlineBus.service.OtpService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Controller
 public class AuthController {
@@ -22,19 +29,25 @@ public class AuthController {
     @Autowired
     private OtpService otpService;
 
-    // ✅ Show login page
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    // ✅ Login Page
     @GetMapping("/login")
     public String showLoginPage() {
         return "login";
     }
 
-    // ✅ Show register page
+    // ✅ Register Page
     @GetMapping("/register")
     public String showRegisterPage() {
         return "register";
     }
 
-    // ✅ Register user
+    // ✅ Register User
     @PostMapping("/api/auth/register")
     @ResponseBody
     public ResponseEntity<String> registerUser(@RequestBody User user) {
@@ -48,7 +61,7 @@ public class AuthController {
         return ResponseEntity.ok("✅ User registered successfully.");
     }
 
-    // ✅ Role-based login
+    // ✅ Process Login
     @PostMapping("/process-login")
     public RedirectView processLogin(@RequestParam String email,
                                      @RequestParam String password,
@@ -56,18 +69,15 @@ public class AuthController {
                                      HttpSession session) {
 
         User user = authService.authenticateUser(email, password);
-
         if (user == null) {
             model.addAttribute("error", "Invalid credentials.");
             return new RedirectView("/login?error");
         }
 
-        // ✅ Store login details in session
         session.setAttribute("email", user.getEmail());
         session.setAttribute("name", user.getName());
         session.setAttribute("role", user.getRole());
 
-        // ✅ Redirect based on role
         return switch (user.getRole()) {
             case "admin" -> new RedirectView("/admin-dashboard");
             case "agent" -> new RedirectView("/agent-dashboard");
@@ -75,20 +85,18 @@ public class AuthController {
         };
     }
 
-    // ✅ User dashboard
+    // ✅ User Dashboard
     @GetMapping("/dashboard")
     public String showUserDashboard(Model model) {
         model.addAttribute("welcomeMessage", "Welcome to your user dashboard!");
         return "userDashboard";
     }
 
-    // ✅ Admin dashboard
     @GetMapping("/admin-dashboard")
     public String showAdminDashboard() {
         return "adminDashboard";
     }
 
-    // ✅ Agent dashboard
     @GetMapping("/agent-dashboard")
     public String showAgentDashboard() {
         return "agentDashboard";
@@ -99,7 +107,6 @@ public class AuthController {
     @ResponseBody
     public ResponseEntity<String> sendOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
-
         if (otpService.generateAndSendOtp(email)) {
             return ResponseEntity.ok("✅ OTP sent successfully to " + email);
         } else {
@@ -119,6 +126,70 @@ public class AuthController {
             return ResponseEntity.ok("✅ OTP verified successfully.");
         } else {
             return ResponseEntity.status(400).body("❌ Invalid OTP. Please try again.");
+        }
+    }
+
+    // ✅ Forgot Password - Form
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordForm() {
+        return "forgot-password"; // Thymeleaf template
+    }
+    @Value("${app.base-url}")
+    private String baseUrl;
+    private String getBaseUrl(HttpServletRequest request) {
+        // If behind a reverse proxy or deployed, use request info
+        String serverUrl = request.getRequestURL().toString();
+        String path = request.getRequestURI();
+        return serverUrl.replace(path, "");
+    }
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(@RequestParam("email") String email, Model model) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            String token = UUID.randomUUID().toString();
+            user.setResetToken(token);
+            userRepository.save(user);
+
+            String resetLink = baseUrl + "/reset-password?token=" + token;
+            String body = "Hi " + user.getName() + ",\n\n"
+                    + "Click the link below to reset your password:\n"
+                    + resetLink + "\n\n"
+                    + "If you didn’t request this, ignore this email.\n\n"
+                    + "— Online Bus Booking Team";
+
+            emailService.sendEmail(user.getEmail(), "🔐 Password Reset Request", body);
+
+            model.addAttribute("message", "A reset link has been sent to your email.");
+        } else {
+            model.addAttribute("error", "Email not registered.");
+        }
+        return "forgot-password";
+    }
+
+    // ✅ Reset Password - Form
+    @GetMapping("/reset-password")
+    public String showResetPasswordForm(@RequestParam("token") String token, Model model) {
+        model.addAttribute("token", token);
+        return "reset-password";
+    }
+
+    // ✅ Reset Password - Update Password
+    @PostMapping("/reset-password")
+    public String resetPassword(@RequestParam("token") String token,
+                                @RequestParam("password") String password,
+                                Model model) {
+        Optional<User> userOpt = userRepository.findByResetToken(token);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setPassword(new BCryptPasswordEncoder().encode(password));
+            user.setResetToken(null);
+            userRepository.save(user);
+            model.addAttribute("message", "✅ Password updated. You can now login.");
+            return "login";
+        } else {
+            model.addAttribute("error", "Invalid or expired token.");
+            return "reset-password";
         }
     }
 }

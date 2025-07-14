@@ -17,5 +17,7 @@ public class User {
     private int age;
     private String gender;
     private String password;
-    private String role; // ✅ No default value
+    private String role;
+    private String resetToken;
+
 }

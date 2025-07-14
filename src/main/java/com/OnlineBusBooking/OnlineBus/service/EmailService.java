@@ -100,4 +100,18 @@ public class EmailService {
 
         mailSender.send(message);
     }
+    public void sendEmail(String to, String subject, String body) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false); // false => no attachment
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(body, false); // false => plain text (true = HTML)
+
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send email", e);
+        }
+    }
+
 }

@@ -4,16 +4,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const dateInput = document.querySelector('input[type="date"]');
   const searchBtn = document.querySelector(".search-btn");
   const form = document.querySelector(".search-form");
+  const resultDiv = document.getElementById("searchResults");
 
   searchBtn.disabled = true;
 
-  function checkInputs() {
+  function validateInputs() {
     searchBtn.disabled = !(fromInput.value && toInput.value && dateInput.value);
   }
 
-  fromInput.addEventListener("input", checkInputs);
-  toInput.addEventListener("input", checkInputs);
-  dateInput.addEventListener("change", checkInputs);
+  fromInput.addEventListener("input", validateInputs);
+  toInput.addEventListener("input", validateInputs);
+  dateInput.addEventListener("change", validateInputs);
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -22,99 +23,91 @@ document.addEventListener("DOMContentLoaded", () => {
     const to = toInput.value.trim().toLowerCase();
     const date = dateInput.value;
 
-    try {
-      const response = await fetch(`/user/api/search-buses?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${date}`);
-      const buses = await response.json();
+    if (!from || !to || !date) return;
 
-      renderSearchResults(buses, from, to, date);
+    resultDiv.innerHTML = "<p>🔄 Searching buses...</p>";
+
+    try {
+      const res = await fetch(`/user/api/search-buses?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&date=${date}`);
+      if (!res.ok) throw new Error("Failed to fetch buses");
+
+      const buses = await res.json();
+      resultDiv.innerHTML = "";
+
+      if (buses.length === 0) {
+        resultDiv.innerHTML = "<p>🚫 No buses found for the selected route and date.</p>";
+        return;
+      }
+
+      for (const bus of buses) {
+        const stops = await getStops(bus.busId);
+        const estimatedFare = await estimateFare(bus.busId, from, to, stops);
+
+        const card = document.createElement("div");
+        card.className = "bus-card";
+
+        card.innerHTML = `
+          <h3>${bus.busName} (${bus.busType})</h3>
+          <p><strong>Bus Number:</strong> ${bus.busNumber}</p>
+          <p><strong>From:</strong> ${capitalize(from)} → <strong>To:</strong> ${capitalize(to)}</p>
+          <p><strong>Estimated Fare:</strong> ₹${estimatedFare}</p>
+          <p><strong>Departure:</strong> ${bus.departureTime} | <strong>Arrival:</strong> ${bus.arrivalTime}</p>
+          <button class="book-btn" onclick="redirectToBooking('${bus.busId}', '${date}')">Book Now</button>
+        `;
+
+        resultDiv.appendChild(card);
+      }
     } catch (err) {
-      console.error("Search error:", err);
-      document.getElementById("searchResults").innerHTML = "<p>❌ Failed to fetch search results.</p>";
+      console.error("Error:", err);
+      resultDiv.innerHTML = "<p>❌ Could not load bus data. Please try again later.</p>";
     }
   });
 });
 
-async function renderSearchResults(buses, userFrom, userTo, date) {
-  const resultDiv = document.getElementById("searchResults");
-  resultDiv.innerHTML = "";
-
-  if (!buses || buses.length === 0) {
-    resultDiv.innerHTML = "<p>🚫 No buses found for your search.</p>";
-    return;
-  }
-
-  for (const bus of buses) {
-    const stops = await fetchRouteStops(bus.busId);
-    const fare = await calculateFareBetweenStops(bus.busId, stops, userFrom, userTo);
-
-    const card = document.createElement("div");
-    card.className = "bus-card";
-
-    card.innerHTML = `
-      <h3>${bus.busName} (${bus.busType})</h3>
-      <p><strong>Bus No:</strong> ${bus.busNumber}</p>
-      <p><strong>From:</strong> ${capitalize(userFrom)} → <strong>To:</strong> ${capitalize(userTo)}</p>
-      <p><strong>Estimated Fare:</strong> ₹${fare}</p>
-      <button class="book-btn" onclick="handleBooking('${bus.busId}', '${date}')">🚌 Book Now</button>
-    `;
-
-    resultDiv.appendChild(card);
-  }
-}
-
-async function fetchRouteStops(busId) {
+async function getStops(busId) {
   try {
-    const response = await fetch(`/user/api/route/stops/${busId}`);
-    return await response.json(); // array of lowercased stop names
-  } catch (error) {
-    console.error(`Error fetching stops for bus ${busId}:`, error);
+    const res = await fetch(`/user/api/route/stops/${busId}`);
+    return await res.json(); // already lowercase
+  } catch (err) {
+    console.error("Failed to fetch route stops:", err);
     return [];
   }
 }
 
-async function calculateFareBetweenStops(busId, stops, from, to) {
+async function estimateFare(busId, from, to, stops) {
   const fromIndex = stops.indexOf(from);
   const toIndex = stops.indexOf(to);
 
-  if (fromIndex === -1 || toIndex === -1 || fromIndex >= toIndex) {
-    return "Invalid Stops";
-  }
+  if (fromIndex === -1 || toIndex === -1 || fromIndex >= toIndex) return "N/A";
 
   const segmentRatio = (toIndex - fromIndex) / (stops.length - 1);
 
   try {
-    const response = await fetch(`/api/seats/by-bus/${busId}`);
-    const data = await response.json();
+    const res = await fetch(`/api/seats/by-bus/${busId}`);
+    const seatLayout = await res.json();
+    const seats = seatLayout.seats || [];
 
     let minFare = Infinity;
 
-    for (const seat of data.seats || []) {
-      const seatFare = seat.price || 0;
-      const dynamicFare = Math.round(seatFare * segmentRatio * 100) / 100;
+    for (const seat of seats) {
+      const price = seat.price || 0;
+      const dynamicFare = Math.round(price * segmentRatio * 100) / 100;
       if (dynamicFare > 0) {
         minFare = Math.min(minFare, dynamicFare);
       }
     }
 
     return isFinite(minFare) ? minFare : "N/A";
-  } catch (error) {
-    console.error(`Error calculating fare for bus ${busId}:`, error);
+  } catch (err) {
+    console.error("Error estimating fare:", err);
     return "Error";
   }
 }
 
-function handleBooking(busId, date) {
-  const userEmail = document.querySelector('meta[name="user-email"]')?.content;
-
-  if (!userEmail || userEmail.trim() === "") {
-    alert("⚠️ Please login to book a bus.");
-    window.location.href = "/login";
-    return;
-  }
-
-  window.location.href = `/user/booking?busId=${busId}&date=${date}`;
+function redirectToBooking(busId, date) {
+  window.location.href = `/user/dashboard?busId=${busId}&date=${date}`;
 }
 
-function capitalize(text) {
-  return text.charAt(0).toUpperCase() + text.slice(1);
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }

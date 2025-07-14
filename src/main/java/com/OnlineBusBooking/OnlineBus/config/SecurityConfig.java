@@ -91,6 +91,8 @@ public class SecurityConfig {
                                 "/api/search-buses", "/api/seats/**", "/api/schedule/**",
                                 "/api/**", "/edit-bus/**", "/agent/**",
                                 "/user/api/**" ,
+                                "/user/api/search-buses",
+                                "/forgot-password", "/reset-password",
                                 "/api/payments/**"
                         ).permitAll()
 

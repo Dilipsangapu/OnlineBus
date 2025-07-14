@@ -213,3 +213,17 @@ body, html {
     text-align: center;
   }
 }
+.login-links {
+    margin-top: 12px;
+    text-align: center;
+}
+
+.login-links a {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.login-links a:hover {
+    text-decoration: underline;
+}

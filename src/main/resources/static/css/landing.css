@@ -147,15 +147,27 @@ body {
 }
 
 .search-form button {
-    background-color: #007bff;
-    color: white;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: not-allowed;
+  background-color: #007bff;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer; /* ✅ Normal cursor */
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
+
+.search-form button:hover:not(:disabled) {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.search-form button:disabled {
+  cursor: not-allowed; /* ✅ Only show when truly disabled */
+  opacity: 0.6;
+}
+
 
 .note {
     font-size: 0.9rem;
