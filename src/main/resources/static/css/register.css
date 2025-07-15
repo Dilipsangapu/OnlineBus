@@ -1,3 +1,4 @@
+/* ✅ Reset & Base */
 * {
   margin: 0;
   padding: 0;
@@ -11,12 +12,13 @@ body, html {
   overflow-x: hidden;
 }
 
+/* ✅ Layout Wrapper */
 .register-wrapper {
   display: flex;
   height: 100%;
 }
 
-/* Left Panel */
+/* ✅ Left Panel */
 .left-panel {
   width: 50%;
   background: linear-gradient(135deg, #00c6a2, #61e8c6);
@@ -70,7 +72,7 @@ body, html {
   opacity: 0.9;
 }
 
-/* Right Panel */
+/* ✅ Right Panel */
 .right-panel {
   width: 50%;
   display: flex;
@@ -106,7 +108,7 @@ body, html {
   margin-bottom: 24px;
 }
 
-/* Form */
+/* ✅ Form */
 .register-form {
   display: flex;
   flex-direction: column;
@@ -156,7 +158,7 @@ body, html {
   color: #00b39f;
 }
 
-/* Buttons */
+/* ✅ Button */
 .register-btn {
   padding: 14px;
   background: #00b39f;
@@ -174,7 +176,7 @@ body, html {
   transform: translateY(-2px);
 }
 
-/* Footer */
+/* ✅ Footer */
 .footer-note {
   margin-top: 18px;
   text-align: center;
@@ -189,15 +191,86 @@ body, html {
   text-decoration: underline;
 }
 
-/* Responsive */
+/* ✅ Responsive: Tablet */
 @media screen and (max-width: 900px) {
   .register-wrapper {
     flex-direction: column;
+    height: auto;
   }
-  .left-panel, .right-panel {
+
+  .left-panel,
+  .right-panel {
     width: 100%;
+    padding: 40px 24px;
   }
+
   .badge-cards {
     align-items: center;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 460px;
+  }
+}
+
+/* ✅ Responsive: Mobile */
+@media screen and (max-width: 600px) {
+  .left-panel {
+    padding: 30px 20px;
+  }
+
+  .app-name {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .headline {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+
+  .badge-cards {
+    gap: 16px;
+  }
+
+  .card {
+    padding: 16px;
+    font-size: 0.9rem;
+  }
+
+  .right-panel {
+    padding: 30px 20px;
+  }
+
+  .register-card {
+    padding: 30px 24px;
+  }
+
+  .register-card h2 {
+    font-size: 1.5rem;
+  }
+
+  .subtext {
+    font-size: 0.9rem;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 12px 10px;
+    font-size: 0.95rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+  }
+
+  .register-btn {
+    padding: 12px;
+    font-size: 0.95rem;
+  }
+
+  .footer-note {
+    font-size: 0.85rem;
   }
 }

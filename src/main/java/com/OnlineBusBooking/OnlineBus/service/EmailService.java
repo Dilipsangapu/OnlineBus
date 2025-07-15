@@ -2,6 +2,7 @@ package com.OnlineBusBooking.OnlineBus.service;
 
 import com.OnlineBusBooking.OnlineBus.model.Booking;
 import com.OnlineBusBooking.OnlineBus.model.Bus;
+import com.OnlineBusBooking.OnlineBus.model.Staff;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,7 @@ public class EmailService {
     private JavaMailSender mailSender;
 
     public void sendTicket(String toEmail, byte[] pdfBytes, String fileName,
-                           List<Booking> bookings, Bus bus) throws MessagingException {
+                           List<Booking> bookings, Bus bus, Staff staff) throws MessagingException {
 
         if (bookings == null || bookings.isEmpty()) {
             throw new IllegalArgumentException("No bookings to send");
@@ -29,14 +30,14 @@ public class EmailService {
         Booking first = bookings.get(0);
         String passengerName = Optional.ofNullable(first.getPassengerName()).orElse("Valued Passenger");
         String travelDate = Optional.ofNullable(first.getTravelDate()).orElse("N/A");
-        String bookingDate = travelDate; // You can replace with actual booking date if stored
+        String bookingDate = travelDate; // Replace with actual booking timestamp if available
         int passengerCount = bookings.size();
         double totalAmount = bookings.stream().mapToDouble(Booking::getFare).sum();
 
         StringBuilder passengerDetails = new StringBuilder();
         for (Booking b : bookings) {
             String name = Optional.ofNullable(b.getPassengerName()).orElse("N/A");
-            String age = String.valueOf(b.getPassengerAge()); // primitive int – always safe
+            String age = String.valueOf(b.getPassengerAge());
             String mobile = Optional.ofNullable(b.getPassengerMobile()).orElse("N/A");
             String seat = Optional.ofNullable(b.getSeatNumber()).orElse("N/A");
             String type = Optional.ofNullable(b.getSeatType()).orElse("N/A");
@@ -49,6 +50,11 @@ public class EmailService {
 
         String fromStop = Optional.ofNullable(first.getPassengerFrom()).orElse("N/A");
         String toStop = Optional.ofNullable(first.getPassengerTo()).orElse("N/A");
+
+        String driverName = Optional.ofNullable(staff.getDriverName()).orElse("N/A");
+        String driverContact = Optional.ofNullable(staff.getDriverContact()).orElse("N/A");
+        String conductorName = Optional.ofNullable(staff.getConductorName()).orElse("N/A");
+        String conductorContact = Optional.ofNullable(staff.getConductorContact()).orElse("N/A");
 
         String emailBody = String.format("""
         Dear %s,
@@ -64,6 +70,10 @@ public class EmailService {
 
         Passenger Details:
         %s
+
+        🧑‍✈️ Staff Information:
+        - Driver: %s (📞 %s)
+        - Conductor: %s (📞 %s)
 
         Your e-ticket (attached as PDF) contains:
         - Passenger information
@@ -87,9 +97,10 @@ public class EmailService {
                 Optional.ofNullable(bus.getOperatorName()).orElse("N/A"),
                 passengerCount,
                 totalAmount,
-                passengerDetails.toString()
+                passengerDetails.toString(),
+                driverName, driverContact,
+                conductorName, conductorContact
         );
-
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -100,18 +111,18 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
     public void sendEmail(String to, String subject, String body) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, false); // false => no attachment
+            MimeMessageHelper helper = new MimeMessageHelper(message, false);
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(body, false); // false => plain text (true = HTML)
+            helper.setText(body, false);
 
             mailSender.send(message);
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send email", e);
         }
     }
-
 }

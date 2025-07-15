@@ -1,4 +1,5 @@
-/* === GLOBAL STYLES === */
+/* === RESET & BASE === */
+* { box-sizing: border-box; }
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -8,20 +9,28 @@ body {
   min-height: 100vh;
 }
 
+/* === LAYOUT === */
 .dashboard-container {
   display: flex;
-  flex-direction: row;
   width: 100%;
+  flex-direction: row;
 }
 
-/* === SIDEBAR === */
 .sidebar {
   width: 220px;
-  background-color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.9);
   padding: 20px;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
+.main-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* === SIDEBAR === */
 .sidebar h2 {
   font-size: 24px;
   margin-bottom: 30px;
@@ -51,17 +60,11 @@ body {
   font-weight: bold;
 }
 
-/* === MAIN CONTENT === */
-.main-content {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
-  background-color: rgba(255, 255, 255, 0.9);
-}
-
+/* === SECTIONS === */
 .user-section {
   display: none;
 }
+
 .user-section.active {
   display: block;
 }
@@ -94,18 +97,20 @@ h2 {
   border-color: #5ee7df;
 }
 
+/* === BUTTONS === */
 .btn-submit {
-  background-color: #008c7a;
+  background: #008c7a;
   color: white;
   border: none;
   cursor: pointer;
   transition: background 0.2s ease;
 }
+
 .btn-submit:hover {
-  background-color: #007066;
+  background: #007066;
 }
 
-/* === SEARCH RESULTS / BUS CARDS === */
+/* === BUS CARDS === */
 .bus-card {
   background: #e6fdfb;
   padding: 16px;
@@ -113,24 +118,29 @@ h2 {
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
+
 .bus-card h4 {
   margin: 0;
   color: #00695c;
 }
+
 .bus-card p {
   margin: 5px 0;
 }
+
 .bus-card button {
   margin-top: 10px;
-  background-color: #008c7a;
+  background: #008c7a;
   color: white;
   border: none;
   padding: 8px 12px;
   border-radius: 5px;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
+
 .bus-card button:hover {
-  background-color: #006e5a;
+  background: #006e5a;
 }
 
 /* === SEAT LAYOUT === */
@@ -142,7 +152,7 @@ h2 {
 }
 
 .seat-btn {
-  background-color: #d4fddf;
+  background: #d4fddf;
   border: 1px solid #58d39b;
   padding: 8px 12px;
   border-radius: 6px;
@@ -150,19 +160,24 @@ h2 {
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .seat-btn:hover:not(.booked):not(.selected) {
-  background-color: #bffad3;
+  background: #bffad3;
+  transform: scale(1.05);
 }
+
 .seat-btn.booked {
-  background-color: #999;
+  background: #999;
   color: white;
   cursor: not-allowed;
   text-decoration: line-through;
 }
+
 .seat-btn.selected {
-  background-color: #1e90ff;
+  background: #1e90ff;
   color: white;
   font-weight: bold;
 }
@@ -197,13 +212,21 @@ h2 {
   border: 1px solid #888;
 }
 
-.legend-available { background-color: #d4fddf; }
-.legend-booked { background-color: #999; }
-.legend-selected { background-color: #1e90ff; }
+.legend-available {
+  background: #d4fddf;
+}
+
+.legend-booked {
+  background: #999;
+}
+
+.legend-selected {
+  background: #1e90ff;
+}
 
 /* === PASSENGER FORM === */
 .passenger-input-block {
-  background-color: #f2fefc;
+  background: #f2fefc;
   padding: 15px;
   border-radius: 10px;
   margin-bottom: 15px;
@@ -213,6 +236,7 @@ h2 {
 .passenger-input-block label {
   display: block;
   margin: 8px 0;
+  font-weight: 500;
 }
 
 .passenger-input-block input,
@@ -222,11 +246,19 @@ h2 {
   border-radius: 6px;
   width: 100%;
   max-width: 300px;
+  font-size: 14px;
+}
+
+.passenger-input-block input:focus,
+.passenger-input-block select:focus {
+  outline: none;
+  border-color: #5ee7df;
 }
 
 .passenger-input-block p {
   margin-top: 10px;
   font-weight: bold;
+  color: #006e5a;
 }
 
 /* === CONFIRM BUTTON === */
@@ -234,18 +266,21 @@ h2 {
   margin-top: 20px;
   padding: 12px 20px;
   font-size: 16px;
-  background-color: #008c7a;
+  background: #008c7a;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
+
 #confirmBookingBtn:disabled {
-  background-color: #ccc;
+  background: #ccc;
   cursor: not-allowed;
 }
+
 #confirmBookingBtn:hover:enabled {
-  background-color: #006e5a;
+  background: #006e5a;
 }
 
 /* === BOOKINGS TABLE === */
@@ -254,15 +289,26 @@ h2 {
   border-collapse: collapse;
   margin-top: 10px;
 }
+
 .booking-table th,
 .booking-table td {
   border: 1px solid #ddd;
   padding: 10px;
   text-align: center;
 }
+
 .booking-table th {
-  background-color: #a8edea;
+  background: #a8edea;
   color: #00695c;
+  font-weight: bold;
+}
+
+.booking-table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.booking-table tr:hover {
+  background: #e6fdfb;
 }
 
 /* === PROFILE === */
@@ -272,12 +318,38 @@ h2 {
   border-radius: 10px;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
 }
+
 .profile-card p {
   margin: 10px 0;
   font-size: 16px;
 }
 
-/* === RESPONSIVE STYLES === */
+.profile-card strong {
+  color: #006e5a;
+}
+
+/* === TABLET RESPONSIVE === */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 200px;
+    padding: 15px;
+  }
+
+  .main-content {
+    padding: 25px;
+  }
+
+  .form-layout {
+    gap: 8px;
+  }
+
+  .seat-btn {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+}
+
+/* === MOBILE RESPONSIVE === */
 @media (max-width: 768px) {
   body {
     flex-direction: column;
@@ -309,6 +381,7 @@ h2 {
     flex: 1 1 45%;
     margin: 5px;
     text-align: center;
+    min-width: 120px;
   }
 
   .main-content {
@@ -335,5 +408,147 @@ h2 {
   .booking-table th,
   .booking-table td {
     padding: 6px;
+  }
+
+  #seatLegend {
+    justify-content: center;
+    gap: 10px;
+  }
+}
+
+/* === SMALL MOBILE OPTIMIZATION === */
+@media (max-width: 480px) {
+  .sidebar {
+    padding: 8px;
+  }
+
+  .sidebar h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+
+  .sidebar li {
+    flex: 1 1 100%;
+    margin: 3px 0;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  .form-layout input,
+  .form-layout select,
+  .form-layout button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .seat-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .legend-item {
+    font-size: 12px;
+  }
+
+  .legend-box {
+    width: 12px;
+    height: 12px;
+  }
+
+  .bus-card {
+    padding: 12px;
+  }
+
+  .bus-card h4 {
+    font-size: 16px;
+  }
+
+  .passenger-input-block {
+    padding: 12px;
+  }
+
+  .booking-table {
+    font-size: 11px;
+  }
+
+  .booking-table th,
+  .booking-table td {
+    padding: 4px;
+  }
+
+  #confirmBookingBtn {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .profile-card {
+    padding: 15px;
+  }
+
+  .profile-card p {
+    font-size: 14px;
+  }
+}
+
+/* === LANDSCAPE MOBILE === */
+@media (max-width: 768px) and (orientation: landscape) {
+  .sidebar {
+    padding: 8px;
+  }
+
+  .sidebar ul {
+    gap: 8px;
+  }
+
+  .sidebar li {
+    flex: 1 1 30%;
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  .form-layout {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .seat-deck {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+}
+
+/* === LARGE DESKTOP === */
+@media (min-width: 1200px) {
+  .sidebar {
+    width: 250px;
+    padding: 25px;
+  }
+
+  .main-content {
+    padding: 40px;
+  }
+
+  .seat-btn {
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+
+  .bus-card {
+    padding: 20px;
+  }
+
+  .passenger-input-block {
+    padding: 20px;
   }
 }

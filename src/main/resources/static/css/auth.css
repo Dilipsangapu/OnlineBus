@@ -1,35 +1,98 @@
 .auth-container {
     max-width: 400px;
-    margin: 60px auto;
-    padding: 30px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #f9f9f9;
+    width: min(90%, 400px);
+    margin: clamp(20px, 5vw, 40px) auto;
+    padding: clamp(15px, 4vw, 25px);
+    border: 1px solid #e0e0e0;
+    border-radius: clamp(8px, 2vw, 12px);
+    background: #ffffff;
     text-align: center;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
 }
 
 .auth-container h2 {
-    margin-bottom: 20px;
+    margin-bottom: clamp(18px, 4vw, 25px);
+    color: #333;
+    font-size: clamp(1.4rem, 3vw, 1.8rem);
+    font-weight: 600;
 }
 
 .auth-container input {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+    padding: clamp(9px, 2vw, 12px) clamp(11px, 2.5vw, 15px);
+    margin-bottom: clamp(15px, 3vw, 18px);
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: clamp(0.9rem, 2vw, 1rem);
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+}
+
+.auth-container input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+    background-color: #fff;
 }
 
 .auth-container button {
-    padding: 10px 20px;
+    width: 100%;
+    padding: clamp(10px, 2vw, 12px);
     background: #007bff;
     color: white;
     border: none;
-    border-radius: 5px;
-    font-weight: bold;
+    border-radius: 8px;
+    font-weight: 600;
     cursor: pointer;
+    font-size: clamp(0.9rem, 2vw, 1rem);
+    transition: all 0.3s ease;
+    margin-top: 10px;
 }
+
 .auth-container button:hover {
-    background: #0056b3;
+    background: #0069d9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auth-container button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.auth-container .auth-links {
+    margin-top: 20px;
+    font-size: clamp(0.85rem, 1.8vw, 0.9rem);
+}
+
+.auth-container .auth-links a {
+    color: #007bff;
+    text-decoration: none;
+    margin: 0 5px;
+}
+
+.auth-container .auth-links a:hover {
+    text-decoration: underline;
+}
+
+.auth-container .error-message {
+    color: #dc3545;
+    margin-bottom: 15px;
+    font-size: clamp(0.85rem, 1.8vw, 0.9rem);
+}
+
+.auth-container .success-message {
+    color: #28a745;
+    margin-bottom: 15px;
+    font-size: clamp(0.85rem, 1.8vw, 0.9rem);
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .auth-container input,
+    .auth-container button {
+        min-height: 44px; /* Minimum touch target size */
+    }
 }

@@ -174,7 +174,52 @@
             <h2>📚 Bookings</h2>
             <div id="bookingList"></div>
         </div>
+        <!-- Add this mobile navigation HTML structure to your page -->
+        <div class="mobile-nav">
+            <div class="mobile-nav-header">
+                <div class="mobile-nav-title">Agent</div>
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">Menu</button>
+            </div>
+            <div class="mobile-nav-items" id="mobileNavItems">
+                <div class="mobile-nav-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
+                <div class="mobile-nav-item" onclick="showSection('buses')">🚌 Buses</div>
+                <div class="mobile-nav-item" onclick="showSection('routes')">📍 Routes</div>
+                <div class="mobile-nav-item" onclick="showSection('seat-layout')">💺 Seat Layout</div>
+                <div class="mobile-nav-item" onclick="showSection('staff')">👥 Staff</div>
+                <div class="mobile-nav-item" onclick="showSection('schedule')">📅 Schedule</div>
+                <div class="mobile-nav-item" onclick="showSection('bookings')">🎫 Bookings</div>
+                <div class="mobile-nav-item" onclick="showSection('logout')">🚪 Logout</div>
+            </div>
+        </div>
 
+        <!-- Add this JavaScript for mobile menu functionality -->
+        <script>
+            function toggleMobileMenu() {
+              const mobileNavItems = document.getElementById('mobileNavItems');
+              mobileNavItems.classList.toggle('show');
+            }
+
+            function showSection(sectionName) {
+              // Hide all sections
+              const sections = document.querySelectorAll('.dashboard-section');
+              sections.forEach(section => section.classList.remove('active'));
+
+              // Show selected section
+              const targetSection = document.getElementById(sectionName + 'Section') ||
+                                   document.querySelector('[data-section="' + sectionName + '"]');
+              if (targetSection) {
+                targetSection.classList.add('active');
+              }
+
+              // Update active nav item
+              const navItems = document.querySelectorAll('.mobile-nav-item, .sidebar li');
+              navItems.forEach(item => item.classList.remove('active'));
+              event.target.classList.add('active');
+
+              // Hide mobile menu after selection
+              document.getElementById('mobileNavItems').classList.remove('show');
+            }
+        </script>
     </main>
 </div>
 </body>

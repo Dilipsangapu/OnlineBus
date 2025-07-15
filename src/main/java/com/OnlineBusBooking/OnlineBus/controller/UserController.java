@@ -38,6 +38,9 @@ public class UserController {
     private EmailService emailService;
     @Autowired
     private SeatLayoutRepository seatLayoutRepository;
+    @Autowired
+    private StaffRepository staffRepository;
+
 
 
     @GetMapping("/dashboard")
@@ -271,23 +274,26 @@ public class UserController {
 
         Optional<Bus> busOpt = busRepository.findById(busId);
         List<TripSchedule> schedules = tripScheduleRepository.findByBusIdAndDate(busId, LocalDate.parse(travelDateStr));
+        List<Staff> staffList = staffRepository.findByBusId(busId);
 
-        if (bookings.isEmpty() || busOpt.isEmpty() || schedules.isEmpty()) {
-            return ResponseEntity.badRequest().body("No bookings or schedule found.");
+        if (bookings.isEmpty() || busOpt.isEmpty() || schedules.isEmpty() || staffList.isEmpty()) {
+            return ResponseEntity.badRequest().body("No bookings, schedule, bus, or staff found.");
         }
 
         Bus bus = busOpt.get();
         TripSchedule schedule = schedules.get(0);
+        Staff staff = staffList.get(0); // Use first staff for this bus
 
         try {
-            byte[] pdf = TicketPDFGenerator.generateTicketPDF(bookings, bus, schedule);
-            emailService.sendTicket(email, pdf, "ticket.pdf", bookings, bus);
+            byte[] pdf = TicketPDFGenerator.generateTicketPDF(bookings, bus, schedule, staff);
+            emailService.sendTicket(email, pdf, "ticket.pdf", bookings, bus, staff);
             return ResponseEntity.ok("📧 Ticket emailed successfully.");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("❌ Failed to generate/send ticket.");
         }
     }
+
     @GetMapping("/api/bookings/download-ticket")
     public ResponseEntity<byte[]> downloadTicket(@RequestParam String email,
                                                  @RequestParam String busId,
@@ -300,11 +306,10 @@ public class UserController {
                 .findFirst();
 
         Optional<Bus> busOpt = busRepository.findById(busId);
+        List<TripSchedule> schedules = tripScheduleRepository.findByBusIdAndDate(busId, LocalDate.parse(travelDate));
+        List<Staff> staffList = staffRepository.findByBusId(busId);
 
-        LocalDate date = LocalDate.parse(travelDate); // ✅ Ensure valid format
-        List<TripSchedule> schedules = tripScheduleRepository.findByBusIdAndDate(busId, date);
-
-        if (bookingOpt.isEmpty() || busOpt.isEmpty() || schedules.isEmpty()) {
+        if (bookingOpt.isEmpty() || busOpt.isEmpty() || schedules.isEmpty() || staffList.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -312,8 +317,9 @@ public class UserController {
             Booking booking = bookingOpt.get();
             Bus bus = busOpt.get();
             TripSchedule schedule = schedules.get(0);
+            Staff staff = staffList.get(0); // Use first staff entry for the bus
 
-            byte[] pdf = TicketPDFGenerator.generateTicketPDF(List.of(booking), bus, schedule);
+            byte[] pdf = TicketPDFGenerator.generateTicketPDF(List.of(booking), bus, schedule, staff);
 
             return ResponseEntity.ok()
                     .header("Content-Disposition", "attachment; filename=ticket_" + seatNumber + ".pdf")
@@ -324,5 +330,4 @@ public class UserController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
 }

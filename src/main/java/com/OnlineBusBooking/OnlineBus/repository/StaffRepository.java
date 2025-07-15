@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface StaffRepository extends MongoRepository<Staff, String> {
     List<Staff> findByBusId(String busId);
+
 }

@@ -2,6 +2,7 @@ package com.OnlineBusBooking.OnlineBus.util;
 
 import com.OnlineBusBooking.OnlineBus.model.Booking;
 import com.OnlineBusBooking.OnlineBus.model.Bus;
+import com.OnlineBusBooking.OnlineBus.model.Staff;
 import com.OnlineBusBooking.OnlineBus.model.TripSchedule;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
@@ -23,7 +24,7 @@ import java.util.Optional;
 
 public class TicketPDFGenerator {
 
-    public static byte[] generateTicketPDF(List<Booking> bookings, Bus bus, TripSchedule schedule) throws Exception {
+    public static byte[] generateTicketPDF(List<Booking> bookings, Bus bus, TripSchedule schedule, Staff staff) throws Exception {
         if (bookings == null || bookings.isEmpty()) {
             throw new IllegalArgumentException("No bookings provided");
         }
@@ -117,6 +118,21 @@ public class TicketPDFGenerator {
         seatsTable.addCell(new Cell(1, 3).add(new Paragraph("Total").setBold()));
         seatsTable.addCell(getCell(String.format("₹%.2f", totalFare), true));
         doc.add(seatsTable);
+        // Staff Info
+        doc.add(new Paragraph("\n👨‍✈️ Staff Info").setBold().setFontSize(12));
+        Table staffTable = new Table(UnitValue.createPercentArray(new float[]{1, 2}))
+                .useAllAvailableWidth().setMarginBottom(10);
+
+        staffTable.addCell(getCell("Driver Name:", true));
+        staffTable.addCell(getCell(Optional.ofNullable(staff.getDriverName()).orElse("N/A"), false));
+        staffTable.addCell(getCell("Driver Contact:", true));
+        staffTable.addCell(getCell(Optional.ofNullable(staff.getDriverContact()).orElse("N/A"), false));
+        staffTable.addCell(getCell("Conductor Name:", true));
+        staffTable.addCell(getCell(Optional.ofNullable(staff.getConductorName()).orElse("N/A"), false));
+        staffTable.addCell(getCell("Conductor Contact:", true));
+        staffTable.addCell(getCell(Optional.ofNullable(staff.getConductorContact()).orElse("N/A"), false));
+
+        doc.add(staffTable);
 
         // QR Code
         String qrContent = String.format("Name: %s | Email: %s | Bus: %s | Route: %s | Date: %s | Paid: ₹%.2f",
@@ -141,8 +157,6 @@ public class TicketPDFGenerator {
         System.out.println("✅ PDF generated successfully.");
         return outputStream.toByteArray();
     }
-
-
 
     private static Cell getCell(String text, boolean isBold) {
         Paragraph p = new Paragraph(Optional.ofNullable(text).orElse("N/A")).setFontSize(10);
