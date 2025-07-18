@@ -294,43 +294,72 @@ body, html {
     margin-bottom: 12px;
 }
 
-/* Bus Results */
-.bus-results {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(clamp(200px, 30vw, 240px), 1fr));
-    gap: clamp(16px, 3vw, 20px);
-    margin-top: 20px;
+/* ✅ Updated Bus Results (Horizontal layout) */
+#searchResults {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: clamp(16px, 2.5vw, 24px);
+  padding: 24px 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  justify-content: flex-start; /* Always left-aligned */
+  width: 100%;
+  box-sizing: border-box;
 }
 
+
+
 .bus-card {
+    flex: 0 0 auto;
+    width: clamp(280px, 35vw, 340px);
     background: #fff;
     border: 1px solid #ddd;
     padding: clamp(12px, 2.5vw, 16px);
-    margin: clamp(0.75rem, 1.5vw, 1rem) 0;
     border-radius: 8px;
     color: #333;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    scroll-snap-align: start;
+    box-sizing: border-box;
 }
 
 .bus-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.book-now-btn {
+.book-now-btn,
+.book-btn {
     background-color: #007bff;
     color: white;
     border: none;
     padding: clamp(8px, 1.5vw, 12px) clamp(12px, 2vw, 16px);
     border-radius: 5px;
     cursor: pointer;
-    font-size: clamp(0.85rem, 1.8vw, 0.9rem);
-    transition: background-color 0.3s ease;
+    font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+    transition: background-color 0.3s ease, transform 0.2s ease;
     min-height: 36px;
+    display: inline-block;
+    margin-top: 12px;
 }
 
-.book-now-btn:hover {
+.book-now-btn:hover,
+.book-btn:hover {
     background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+/* Scrollbar styling for WebKit */
+#searchResults::-webkit-scrollbar {
+    height: 8px;
+}
+
+#searchResults::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
 }
 
 /* Footer */
@@ -348,6 +377,7 @@ footer {
     .search-form button,
     .search-btn,
     .book-now-btn,
+    .book-btn,
     .input-group input,
     .search-form input {
         min-height: 44px;
@@ -355,5 +385,19 @@ footer {
 
     .nav-links a {
         padding: 8px 4px;
+    }
+}
+
+/* Responsive Bus Card Widths */
+@media screen and (max-width: 768px) {
+    .bus-card {
+        width: calc(80% - 16px);
+        margin-right: 8px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .bus-card {
+        width: calc(90% - 16px);
     }
 }

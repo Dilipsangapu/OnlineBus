@@ -1,16 +1,49 @@
-
+// ---------- GLOBAL STATE ----------
 let selectedBus = null;
 let editingBusId = null;
 let editingRouteId = null;
 let editingStaffId = null;
 let editingScheduleId = null;
 
+// ---------- UTILITIES ----------
+function resetEditingState() {
+  editingBusId = null;
+  editingRouteId = null;
+  editingStaffId = null;
+  editingScheduleId = null;
+}
+
+function scrollToForm(formId) {
+  const el = document.getElementById(formId);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// Toast notification (basic, unobtrusive, optional)
+function showToast(msg, duration = 3000) {
+  const toast = document.createElement("div");
+  toast.innerText = msg;
+  toast.style.position = "fixed";
+  toast.style.bottom = "30px";
+  toast.style.right = "30px";
+  toast.style.padding = "12px 20px";
+  toast.style.background = "#00b39f";
+  toast.style.color = "#fff";
+  toast.style.borderRadius = "6px";
+  toast.style.boxShadow = "0 8px 22px rgba(0,0,0,0.15)";
+  toast.style.zIndex = "2000";
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), duration);
+}
+
+// ---------- SECTION CONTROL ----------
 function showSection(sectionId) {
   document.querySelectorAll(".dashboard-section").forEach(sec => sec.classList.remove("active"));
   document.querySelectorAll(".sidebar li").forEach(li => li.classList.remove("active"));
 
   document.getElementById(sectionId + "Section")?.classList.add("active");
   document.querySelector(`.sidebar li[onclick*="${sectionId}"]`)?.classList.add("active");
+
+  resetEditingState();
 
   if (sectionId === "dashboard") loadDashboardStats();
   if (sectionId === "buses") fetchBuses();
@@ -25,33 +58,26 @@ document.addEventListener("DOMContentLoaded", () => {
   showSection("dashboard");
 });
 
+// ---------- DASHBOARD ----------
 function loadDashboardStats() {
   const agentEmail = document.body.getAttribute("data-email");
 
   fetch(`/agent/api/stats/${agentEmail}`)
     .then(res => res.json())
     .then(stats => {
-      const tripsEl = document.getElementById("totalTrips");
-      const revenueEl = document.getElementById("monthlyRevenue");
-      const busCountEl = document.getElementById("busCount");
-      const routeCountEl = document.getElementById("routeCount");
-      const bookingCountEl = document.getElementById("bookingCount");
-
-      if (tripsEl) tripsEl.innerText = stats.totalSchedules;
-      if (revenueEl) revenueEl.innerText = "₹" + stats.totalRevenue;
-      if (busCountEl) busCountEl.innerText = stats.totalBuses;
-      if (routeCountEl) routeCountEl.innerText = stats.totalRoutes;
-      if (bookingCountEl) bookingCountEl.innerText = stats.totalBookings;
+      document.getElementById("totalTrips").innerText = stats.totalSchedules;
+      document.getElementById("monthlyRevenue").innerText = "₹" + stats.totalRevenue;
+      document.getElementById("busCount").innerText = stats.totalBuses;
+      document.getElementById("routeCount").innerText = stats.totalRoutes;
+      document.getElementById("bookingCount").innerText = stats.totalBookings;
     })
     .catch(err => {
-      console.error("Failed to load real stats:", err);
+      console.error("Failed to load dashboard stats:", err);
       alert("❌ Could not load dashboard stats.");
     });
 }
 
-
-
-// ---------------- BUS HANDLING ---------------- //
+// ---------- BUSES ----------
 function fetchBuses() {
   const agentId = document.body.getAttribute("data-email");
   fetch(`/buses/api/by-operator/${agentId}`)
@@ -95,7 +121,7 @@ document.getElementById("busForm")?.addEventListener("submit", e => {
   const url = editingBusId ? `/buses/api/update/${editingBusId}` : "/buses/api/add";
 
   fetch(url, {
-    method: method,
+    method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(bus)
   })
@@ -105,10 +131,12 @@ document.getElementById("busForm")?.addEventListener("submit", e => {
       form.reset();
       editingBusId = null;
       fetchBuses();
-    });
+    })
+    .catch(err => console.error("Save bus error:", err));
 });
 
-// ---------------- ROUTE HANDLING ---------------- //
+
+// ---------- ROUTES ----------
 function loadRoutes() {
   const email = document.body.getAttribute("data-email");
   fetch(`/buses/api/by-operator/${email}`)
@@ -139,7 +167,7 @@ function loadSavedRoutes(buses) {
     fetch(`/api/routes/by-bus/${bus.id}`)
       .then(res => res.json())
       .then(routes => {
-        if (routes.length === 0) return;
+        if (!routes.length) return;
 
         const section = document.createElement("div");
         section.innerHTML = `<h4>🚌 ${bus.busName}</h4>`;
@@ -154,7 +182,7 @@ function loadSavedRoutes(buses) {
           row.innerHTML = `
             <td>${route.from}</td>
             <td>${route.to}</td>
-            <td>${route.stops.join(", ")}</td>
+            <td>${route.stops?.join(", ") || ""}</td>
             <td>${route.timings}</td>
             <td>
               <button onclick='editRoute(${JSON.stringify(route)})'>✏️</button>
@@ -163,6 +191,7 @@ function loadSavedRoutes(buses) {
           `;
           tbody.appendChild(row);
         });
+
         table.appendChild(tbody);
         section.appendChild(table);
         routeList.appendChild(section);
@@ -179,21 +208,20 @@ function editRoute(route) {
   form.timings.value = route.timings;
   document.getElementById("busSelect").value = route.busId;
   selectedBus = { id: route.busId };
+
+  scrollToForm("routeForm");
 }
 
-function deleteRoute(routeId) {
-  fetch(`/api/routes/delete/${routeId}`, { method: "DELETE" })
+function deleteRoute(id) {
+  fetch(`/api/routes/delete/${id}`, { method: "DELETE" })
     .then(() => loadRoutes());
 }
 
-document.getElementById("routeForm")?.addEventListener("submit", e => {
+document.getElementById("routeForm")?.addEventListener("submit", async e => {
   e.preventDefault();
   const form = e.target;
 
-  if (!selectedBus || !selectedBus.id) {
-    alert("Please select a bus for the route.");
-    return;
-  }
+  if (!selectedBus?.id) return alert("Please select a bus for the route.");
 
   const route = {
     busId: selectedBus.id,
@@ -203,36 +231,28 @@ document.getElementById("routeForm")?.addEventListener("submit", e => {
     timings: form.timings.value
   };
 
-  const method = editingRouteId ? "PUT" : "POST";
   const url = editingRouteId ? `/api/routes/update/${editingRouteId}` : "/api/routes/add";
+  const method = editingRouteId ? "PUT" : "POST";
 
-  fetch(url, {
-    method: method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(route)
-  })
-    .then(async res => {
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`HTTP ${res.status} – ${text}`);
-      }
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(route)
+    });
 
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        return res.json();
-      } else {
-        return {};
-      }
-    })
-    .then(() => {
-      form.reset();
-      editingRouteId = null;
-      loadRoutes();
-    })
-    .catch(err => console.error("Error saving route:", err));
+    if (!res.ok) throw new Error(await res.text());
+
+    form.reset();
+    editingRouteId = null;
+    loadRoutes();
+  } catch (err) {
+    console.error("Error saving route:", err);
+    alert("❌ Failed to save route.");
+  }
 });
 
-// ---------------- LAYOUT ---------------- //
+// ---------- LAYOUT (SEAT MAP & PRICING) ----------
 function fetchBusesForLayout() {
   const email = document.body.getAttribute("data-email");
   fetch(`/buses/api/by-operator/${email}`)
@@ -322,7 +342,8 @@ function saveSeatLayout() {
     });
 }
 
-// --------- STAFF FEATURE ---------
+
+// ---------- STAFF FEATURE ----------
 function loadStaffSection() {
   const agentId = document.body.getAttribute("data-email");
   fetch(`/buses/api/by-operator/${agentId}`)
@@ -383,6 +404,7 @@ function editStaff(staff) {
   form.conductorName.value = staff.conductorName || "";
   form.conductorContact.value = staff.conductorContact || "";
   document.getElementById("staffBusSelect").value = staff.busId;
+  scrollToForm("staffForm");
 }
 
 function deleteStaff(id) {
@@ -412,7 +434,7 @@ document.getElementById("staffForm")?.addEventListener("submit", async e => {
 
   try {
     const res = await fetch(url, {
-      method: method,
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(staff)
     });
@@ -430,6 +452,8 @@ document.getElementById("staffForm")?.addEventListener("submit", async e => {
     alert("❌ Failed to save staff. See console.");
   }
 });
+
+// ---------- SCHEDULE FEATURE ----------
 function loadScheduleSection() {
   const agentId = document.body.getAttribute("data-email");
   fetch(`/buses/api/by-operator/${agentId}`)
@@ -493,6 +517,7 @@ function editSchedule(schedule) {
   document.getElementById("departureTime").value = schedule.departureTime;
   document.getElementById("arrivalTime").value = schedule.arrivalTime;
   document.getElementById("scheduleBusSelect").value = schedule.busId;
+  scrollToForm("scheduleSection");
 }
 
 function deleteSchedule(id) {
@@ -518,7 +543,7 @@ document.getElementById("saveScheduleBtn")?.addEventListener("click", async () =
 
   try {
     const res = await fetch(url, {
-      method: method,
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(schedule)
     });
@@ -538,6 +563,8 @@ document.getElementById("saveScheduleBtn")?.addEventListener("click", async () =
     alert("❌ Failed to save schedule. See console.");
   }
 });
+
+// ---------- BOOKINGS ----------
 function loadBookings() {
   const agentId = document.body.getAttribute("data-email");
 

@@ -144,7 +144,6 @@ function updateSelectionDisplay() {
 
   document.getElementById("selectedSeatsDisplay").textContent = selectedList;
   document.getElementById("totalFare").textContent = `₹${total}`;
-  document.getElementById("confirmBookingBtn").disabled = selectedSeats.length === 0;
 
   renderPassengerDetails();
 }
@@ -156,29 +155,46 @@ function renderPassengerDetails() {
   form.innerHTML = "";
 
   selectedSeats.forEach((seat, i) => {
-    const fromOptions = selectedRouteStops.map(stop => `<option value="${stop}" ${stop === seat.passengerFrom ? 'selected' : ''}>${stop}</option>`).join("");
-    const toOptions = selectedRouteStops.map(stop => `<option value="${stop}" ${stop === seat.passengerTo ? 'selected' : ''}>${stop}</option>`).join("");
+    const fromOptions = selectedRouteStops.map((stop, fromIdx) =>
+      `<option value="${stop}" ${stop === seat.passengerFrom ? 'selected' : ''}>${stop}</option>`
+    ).join("");
 
-  form.innerHTML += `
-    <div class="passenger-input-block">
-      <h4>Passenger for Seat ${seat.number}</h4>
-      <label>Name: <input type="text" name="name${i}" required></label><br />
-      <label>Age: <input type="number" name="age${i}" min="1" required></label><br />
-      <label>Mobile: <input type="text" name="mobile${i}" required></label><br />
-      <label>Email: <input type="email" name="email${i}" placeholder="Email" value="${userEmail}" required></label><br />
-      <label>From:
-        <select name="from${i}" onchange="updateFareForSeat(${i})">${fromOptions}</select>
-      </label>
-      <label>To:
-        <select name="to${i}" onchange="updateFareForSeat(${i})">${toOptions}</select>
-      </label>
-      <p>Fare: ₹<span id="fare${i}">${seat.dynamicFare}</span></p>
-      <hr/>
-    </div>`;
+    const toOptions = selectedRouteStops.map((stop, toIdx) => {
+      const fromIndex = selectedRouteStops.indexOf(seat.passengerFrom.toLowerCase());
+      const disabled = toIdx <= fromIndex ? 'disabled' : '';
+      return `<option value="${stop}" ${stop === seat.passengerTo ? 'selected' : ''} ${disabled}>${stop}</option>`;
+    }).join("");
 
+    form.innerHTML += `
+      <div class="passenger-input-block">
+        <h4>Passenger for Seat ${seat.number}</h4>
+        <label>From:
+          <select name="from${i}" onchange="updateFareForSeat(${i}); updateStopOptions(${i}); validatePassengerForm()">
+            ${fromOptions}
+          </select>
+        </label>
+        <label>To:
+          <select name="to${i}" onchange="updateFareForSeat(${i}); validatePassengerForm()">
+            ${toOptions}
+          </select>
+        </label>
+        <label>Name: <input type="text" name="name${i}" required minlength="2" oninput="validatePassengerForm()"></label><br />
+        <label>Age: <input type="number" name="age${i}" required min="1" max="120" oninput="validatePassengerForm()"></label><br />
+        <label>Mobile: <input type="tel" name="mobile${i}" required pattern="[6-9]{1}[0-9]{9}" oninput="validatePassengerForm()"></label><br />
+        <label>Email: <input type="email" name="email${i}" required value="${userEmail}" oninput="validatePassengerForm()"></label><br />
+        <p>Fare: ₹<span id="fare${i}">${seat.dynamicFare}</span></p><hr/>
+      </div>
+    `;
   });
 
   section.style.display = selectedSeats.length > 0 ? "block" : "none";
+
+  // Update "to" options after rendering
+  setTimeout(() => {
+    selectedSeats.forEach((_, i) => updateStopOptions(i));
+  }, 0);
+
+  validatePassengerForm();
 }
 
 // --------- UPDATE FARE ON CHANGE ---------
@@ -194,45 +210,44 @@ function updateFareForSeat(i) {
     const ratio = (toIdx - fromIdx) / (selectedRouteStops.length - 1);
     const newFare = Math.round(seat.price * ratio * 100) / 100;
     seat.dynamicFare = newFare;
-    seat.passengerFrom = from;
-    seat.passengerTo = to;
-    document.getElementById(`fare${i}`).textContent = newFare;
   } else {
     seat.dynamicFare = seat.price;
-    seat.passengerFrom = from;
-    seat.passengerTo = to;
-    document.getElementById(`fare${i}`).textContent = seat.price;
   }
 
+  seat.passengerFrom = from;
+  seat.passengerTo = to;
+  document.getElementById(`fare${i}`).textContent = seat.dynamicFare;
   updateSelectionDisplay();
 }
 
-// --------- BOOKING + PAYMENT ---------
+// --------- CONFIRM BOOKING ---------
 function confirmBooking() {
   const formData = new FormData(document.getElementById("passengerDetailsForm"));
-passengers = selectedSeats.map((seat, i) => ({
-  seatNumber: seat.number,
-  seatType: seat.type,
-  fare: seat.dynamicFare,
-  passengerFrom: seat.passengerFrom,
-  passengerTo: seat.passengerTo,
-  name: formData.get(`name${i}`),
-  age: formData.get(`age${i}`),
-  mobile: formData.get(`mobile${i}`),
-  email: formData.get(`email${i}`) || userEmail  // default to user's email if not provided
-}));
 
+  const passengers = selectedSeats.map((seat, i) => ({
+    seatNumber: seat.number,
+    seatType: seat.type,
+    fare: seat.dynamicFare,
+    passengerFrom: seat.passengerFrom,
+    passengerTo: seat.passengerTo,
+    name: formData.get(`name${i}`),
+    age: formData.get(`age${i}`),
+    mobile: formData.get(`mobile${i}`),
+    email: formData.get(`email${i}`) || userEmail
+  }));
 
-  const totalAmount = passengers.reduce((sum, p) => sum + p.fare, 0) * 100;
+  const totalAmount = Math.round(passengers.reduce((sum, p) => sum + p.fare, 0) * 100); // ✔ ensure integer in paise
 
   fetch("/api/payments/create-order", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `amount=${totalAmount}&currency=INR`
   })
-    .then(res => res.text())
-    .then(txt => {
-      const order = JSON.parse(txt);
+    .then(res => {
+      if (!res.ok) throw new Error("❌ Failed to create Razorpay order.");
+      return res.json();
+    })
+    .then(order => {
       const options = {
         key: "rzp_test_38I5IEufjhiOFj",
         amount: order.amount,
@@ -241,7 +256,7 @@ passengers = selectedSeats.map((seat, i) => ({
         description: "Bus Ticket Payment",
         order_id: order.id,
         handler: function (response) {
-          const bookings = passengers.map(p =>
+          Promise.all(passengers.map(p =>
             fetch("/user/api/bookings/book", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -259,29 +274,27 @@ passengers = selectedSeats.map((seat, i) => ({
                 passengerTo: p.passengerTo
               })
             })
-          );
-
-          Promise.all(bookings)
-            .then(() => fetch("/user/api/finalize-booking", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: userEmail,
-                busId: selectedBusId,
-                travelDate: selectedTravelDate,
-                seatNumbers: passengers.map(p => p.seatNumber)
-              })
-            }))
-            .then(res => res.text())
-            .then(msg => {
-              alert("✅ Booking & Payment Successful!\n" + msg);
-              selectedSeats = [];
-              updateSelectionDisplay();
-              showUserSection("bookings");
-            }).catch(err => {
-              console.error("Booking Error:", err);
-              alert("❌ Payment success but booking failed.");
-            });
+          )).then(() => fetch("/user/api/finalize-booking", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: userEmail,
+              busId: selectedBusId,
+              travelDate: selectedTravelDate,
+              seatNumbers: passengers.map(p => p.seatNumber)
+            })
+          }))
+          .then(res => res.text())
+          .then(msg => {
+            alert("✅ Booking & Payment Successful!\n" + msg);
+            selectedSeats = [];
+            updateSelectionDisplay();
+            showUserSection("bookings");
+          })
+          .catch(err => {
+            console.error("Booking Error:", err);
+            alert("❌ Payment successful but booking failed.");
+          });
         },
         theme: { color: "#008c7a" }
       };
@@ -291,6 +304,50 @@ passengers = selectedSeats.map((seat, i) => ({
       console.error("Payment Error:", err);
       alert("❌ Payment creation failed.");
     });
+}
+
+// --------- VALIDATE PASSENGER FORM ---------
+function validatePassengerForm() {
+  const form = document.getElementById("passengerDetailsForm");
+  let allValid = true;
+
+  selectedSeats.forEach((_, i) => {
+    const name = form.querySelector(`[name="name${i}"]`);
+    const age = form.querySelector(`[name="age${i}"]`);
+    const mobile = form.querySelector(`[name="mobile${i}"]`);
+    const email = form.querySelector(`[name="email${i}"]`);
+    const from = form.querySelector(`[name="from${i}"]`);
+    const to = form.querySelector(`[name="to${i}"]`);
+
+    if (
+      !name.value.trim() ||
+      name.value.length < 2 ||
+      isNaN(age.value) || +age.value < 1 || +age.value > 120 ||
+      !/^[6-9][0-9]{9}$/.test(mobile.value) ||
+      !email.checkValidity() ||
+      from.value === to.value
+    ) {
+      allValid = false;
+    }
+  });
+
+  document.getElementById("confirmBookingBtn").disabled = !allValid;
+}
+
+// --------- DISABLE INVALID "TO" STOPS ---------
+function updateStopOptions(index) {
+  const fromSelect = document.querySelector(`[name="from${index}"]`);
+  const toSelect = document.querySelector(`[name="to${index}"]`);
+  const fromIndex = selectedRouteStops.indexOf(fromSelect.value.toLowerCase());
+
+  Array.from(toSelect.options).forEach((opt, i) => {
+    opt.disabled = i <= fromIndex;
+  });
+
+  if (toSelect.selectedIndex <= fromIndex) {
+    toSelect.selectedIndex = fromIndex + 1;
+    toSelect.dispatchEvent(new Event("change"));
+  }
 }
 
 // --------- LOAD BOOKINGS ---------
@@ -304,7 +361,6 @@ function loadUserBookings() {
       table.className = "booking-table";
       table.innerHTML = `<thead><tr><th>Bus</th><th>Date</th><th>Seat</th><th>Fare</th><th>Status</th><th>Action</th></tr></thead>`;
       const tbody = document.createElement("tbody");
-
       bookings.forEach(b => {
         tbody.innerHTML += `
           <tr>
@@ -313,10 +369,9 @@ function loadUserBookings() {
             <td>${b.seatNumber}</td>
             <td>₹${b.fare}</td>
             <td>${b.status}</td>
-           <td>${b.status === 'CONFIRMED' ? `<button onclick="downloadTicket('${b.busId}', '${b.travelDate}', '${b.seatNumber}')">📥 Download</button>` : '-'}</td>
+            <td>${b.status === 'CONFIRMED' ? `<button onclick="downloadTicket('${b.busId}', '${b.travelDate}', '${b.seatNumber}')">📥 Download</button>` : '-'}</td>
           </tr>`;
       });
-
       table.appendChild(tbody);
       container.innerHTML = "";
       container.appendChild(table);
@@ -327,16 +382,11 @@ function loadUserBookings() {
 function downloadTicket(busId, date, seatNumber) {
   fetch(`/user/api/bookings/download-ticket?email=${userEmail}&busId=${busId}&travelDate=${date}&seatNumber=${seatNumber}`)
     .then(res => {
-      if (!res.ok) {
-        throw new Error("Invalid response: " + res.status);
-      }
+      if (!res.ok) throw new Error("Invalid response");
       return res.blob();
     })
     .then(blob => {
-      if (blob.size === 0) {
-        throw new Error("Empty file.");
-      }
-
+      if (blob.size === 0) throw new Error("Empty file");
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -347,6 +397,6 @@ function downloadTicket(busId, date, seatNumber) {
     })
     .catch(err => {
       console.error("Ticket download failed:", err);
-      alert("❌ Download failed. Ticket not found or server error.");
+      alert("❌ Download failed.");
     });
 }
