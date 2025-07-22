@@ -179,6 +179,38 @@ public class AgentController {
 
         return stats;
     }
+    @PutMapping("/api/agents/update/{id}")
+    @ResponseBody
+    public ResponseEntity<String> updateAgent(@PathVariable String id, @RequestBody User updatedAgent) {
+        Optional<User> existingOpt = userRepository.findById(id);
 
+        if (existingOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("❌ Agent not found");
+        }
+
+        User existing = existingOpt.get();
+        existing.setName(updatedAgent.getName());
+        existing.setContactPerson(updatedAgent.getContactPerson());
+        existing.setPhone(updatedAgent.getPhone());
+        existing.setEmail(updatedAgent.getEmail());
+
+        // Optionally update password
+        if (updatedAgent.getPassword() != null && !updatedAgent.getPassword().isEmpty()) {
+            existing.setPassword(passwordEncoder.encode(updatedAgent.getPassword()));
+        }
+
+        userRepository.save(existing);
+        return ResponseEntity.ok("✅ Agent updated successfully!");
+    }
+    @DeleteMapping("/api/agents/delete/{id}")
+    @ResponseBody
+    public ResponseEntity<String> deleteAgent(@PathVariable String id) {
+        if (!userRepository.existsById(id)) {
+            return ResponseEntity.badRequest().body("❌ Agent not found");
+        }
+
+        userRepository.deleteById(id);
+        return ResponseEntity.ok("✅ Agent deleted successfully!");
+    }
 
 }
