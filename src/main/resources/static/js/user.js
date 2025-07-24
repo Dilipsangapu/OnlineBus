@@ -289,36 +289,53 @@ function renderSeatLayout(type, busId) {
   tabButtons.forEach((btn) => btn.classList.remove("active"))
   event?.target?.classList.add("active")
 
-  function renderDeck(deckName, deckSeats) {
-    if (deckSeats.length === 0) return
-    layoutDiv.innerHTML += `<div class="deck-title">${deckName.charAt(0).toUpperCase() + deckName.slice(1)} Deck</div>`
-    const container = document.createElement("div")
-    container.className = "seat-deck"
-    deckSeats.forEach((seat) => {
-      const btn = document.createElement("button")
-      btn.className = "seat-btn"
-      btn.textContent = `${seat.number} (₹${seat.price})`
-      const isBooked = window.bookedSeatNumbers.includes(seat.number)
-      const isSelected = selectedSeats.some((s) => s.number === seat.number)
+function renderDeck(deckName, deckSeats) {
+  if (deckSeats.length === 0) return
+  layoutDiv.innerHTML += `<div class="deck-title">${deckName.charAt(0).toUpperCase() + deckName.slice(1)} Deck</div>`
+  const container = document.createElement("div")
+  container.className = "seat-deck"
 
-      if (isBooked) {
-        btn.disabled = true
-        btn.classList.add("booked")
-        btn.setAttribute("aria-label", `Seat ${seat.number} is booked`)
-      } else if (isSelected) {
-        btn.classList.add("selected")
-        btn.onclick = () => toggleSeat(seat, busId)
-        btn.setAttribute("aria-label", `Seat ${seat.number} is selected`)
-      } else {
-        btn.classList.add("available")
-        btn.onclick = () => toggleSeat(seat, busId)
-        btn.setAttribute("aria-label", `Seat ${seat.number} is available`)
-      }
+  deckSeats.forEach((seat) => {
+    const btn = document.createElement("button")
+    btn.className = "seat-btn" // always base class
 
-      container.appendChild(btn)
-    })
-    layoutDiv.appendChild(container)
-  }
+    // Map seat types to correct CSS classes for shapes
+    let shapeClass = ""
+    if (seat.type === "seater") {
+      // For seater type, check deck to determine if it's lower (square) or upper (rectangle)
+      shapeClass = seat.deck === "lower" ? "lower-seater" : "upper"
+    } else if (seat.type === "sleeper") {
+      shapeClass = "sleeper"
+    } else {
+      // fallback
+      shapeClass = seat.type?.replace(/\s/g, "-").toLowerCase() || "seater"
+    }
+
+    btn.classList.add(shapeClass)
+    btn.setAttribute("data-seat-type", shapeClass)
+
+    btn.textContent = `${seat.number} (₹${seat.price})`
+    const isBooked = window.bookedSeatNumbers.includes(seat.number)
+    const isSelected = selectedSeats.some((s) => s.number === seat.number)
+
+    if (isBooked) {
+      btn.disabled = true
+      btn.classList.add("booked")
+      btn.setAttribute("aria-label", `Seat ${seat.number} is booked`)
+    } else if (isSelected) {
+      btn.classList.add("selected")
+      btn.onclick = () => toggleSeat(seat, busId)
+      btn.setAttribute("aria-label", `Seat ${seat.number} is selected`)
+    } else {
+      btn.classList.add("available")
+      btn.onclick = () => toggleSeat(seat, busId)
+      btn.setAttribute("aria-label", `Seat ${seat.number} is available`)
+    }
+
+    container.appendChild(btn)
+  })
+  layoutDiv.appendChild(container)
+}
 
   renderDeck("lower", lower)
   renderDeck("upper", upper)

@@ -260,19 +260,50 @@ h2 {
   margin-bottom: 20px;
 }
 
+/* === SEAT BUTTON BASE STYLES === */
 .seat-btn {
-  padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
-  min-width: 80px;
-  min-height: 44px;
   position: relative;
   margin: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
+/* === SEAT TYPE SPECIFIC STYLES === */
+/* Square seats for Lower Seater */
+.seat-btn.lower-seater,
+.seat-btn[data-seat-type="lower-seater"] {
+  width: 50px;
+  height: 50px;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+/* Rectangle seats for Sleeper and Upper */
+.seat-btn.sleeper,
+.seat-btn.upper,
+.seat-btn[data-seat-type="sleeper"],
+.seat-btn[data-seat-type="upper"] {
+  width: 80px;
+  height: 40px;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+/* Default rectangular shape for seats without specific type */
+.seat-btn:not(.lower-seater):not(.sleeper):not(.upper):not([data-seat-type]) {
+  width: 80px;
+  height: 44px;
+  padding: 8px 12px;
+}
+
+/* === SEAT STATE STYLES === */
 .seat-btn.available,
 .seat-btn:not(.booked):not(.selected) {
   background: #008c7a !important;
@@ -720,10 +751,30 @@ h2 {
     gap: 8px;
   }
 
-  .seat-btn {
+  /* Tablet seat sizes */
+  .seat-btn.lower-seater,
+  .seat-btn[data-seat-type="lower-seater"] {
+    width: 45px;
+    height: 45px;
+    padding: 3px;
+    font-size: 12px;
+  }
+
+  .seat-btn.sleeper,
+  .seat-btn.upper,
+  .seat-btn[data-seat-type="sleeper"],
+  .seat-btn[data-seat-type="upper"] {
+    width: 70px;
+    height: 35px;
     padding: 6px 10px;
-    font-size: 13px;
-    min-width: 70px;
+    font-size: 12px;
+  }
+
+  .seat-btn:not(.lower-seater):not(.sleeper):not(.upper):not([data-seat-type]) {
+    width: 70px;
+    height: 40px;
+    padding: 6px 10px;
+    font-size: 12px;
   }
 
   .bus-seat-layout-container,
@@ -866,11 +917,30 @@ h2 {
     gap: 6px;
   }
 
-  .seat-btn {
-    padding: 8px 10px;
-    font-size: 12px;
-    min-width: 60px;
-    min-height: 44px;
+  /* Mobile seat sizes */
+  .seat-btn.lower-seater,
+  .seat-btn[data-seat-type="lower-seater"] {
+    width: 40px;
+    height: 40px;
+    padding: 2px;
+    font-size: 10px;
+  }
+
+  .seat-btn.sleeper,
+  .seat-btn.upper,
+  .seat-btn[data-seat-type="sleeper"],
+  .seat-btn[data-seat-type="upper"] {
+    width: 60px;
+    height: 32px;
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .seat-btn:not(.lower-seater):not(.sleeper):not(.upper):not([data-seat-type]) {
+    width: 60px;
+    height: 35px;
+    padding: 4px 8px;
+    font-size: 10px;
   }
 
   .seat-legend {
@@ -970,11 +1040,30 @@ h2 {
     padding: 12px;
   }
 
-  .seat-btn {
-    padding: 6px 8px;
-    font-size: 11px;
-    min-width: 50px;
-    min-height: 40px;
+  /* Small mobile seat sizes */
+  .seat-btn.lower-seater,
+  .seat-btn[data-seat-type="lower-seater"] {
+    width: 35px;
+    height: 35px;
+    padding: 1px;
+    font-size: 9px;
+  }
+
+  .seat-btn.sleeper,
+  .seat-btn.upper,
+  .seat-btn[data-seat-type="sleeper"],
+  .seat-btn[data-seat-type="upper"] {
+    width: 50px;
+    height: 28px;
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+
+  .seat-btn:not(.lower-seater):not(.sleeper):not(.upper):not([data-seat-type]) {
+    width: 50px;
+    height: 30px;
+    padding: 3px 6px;
+    font-size: 9px;
   }
 
   .seat-legend {
@@ -1036,10 +1125,30 @@ h2 {
     padding: 40px;
   }
 
-  .seat-btn {
+  /* Large desktop seat sizes */
+  .seat-btn.lower-seater,
+  .seat-btn[data-seat-type="lower-seater"] {
+    width: 55px;
+    height: 55px;
+    padding: 5px;
+    font-size: 15px;
+  }
+
+  .seat-btn.sleeper,
+  .seat-btn.upper,
+  .seat-btn[data-seat-type="sleeper"],
+  .seat-btn[data-seat-type="upper"] {
+    width: 90px;
+    height: 45px;
     padding: 10px 14px;
     font-size: 15px;
-    min-width: 90px;
+  }
+
+  .seat-btn:not(.lower-seater):not(.sleeper):not(.upper):not([data-seat-type]) {
+    width: 90px;
+    height: 48px;
+    padding: 10px 14px;
+    font-size: 15px;
   }
 
   .bus-card {
