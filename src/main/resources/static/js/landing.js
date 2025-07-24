@@ -9,6 +9,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const fromInput = document.querySelector('input[placeholder="Enter departure city"]')
   const toInput = document.querySelector('input[placeholder="Enter destination city"]')
   const dateInput = document.querySelector('input[type="date"]')
+    // Block past dates
+    if (dateInput) {
+      const today = new Date()
+      const yyyy = today.getFullYear()
+      const mm = String(today.getMonth() + 1).padStart(2, "0")
+      const dd = String(today.getDate()).padStart(2, "0")
+      const minDate = `${yyyy}-${mm}-${dd}`
+      dateInput.setAttribute("min", minDate)
+    }
+
   const searchBtn = document.querySelector(".search-btn")
   const form = document.querySelector(".search-form")
   const resultDiv = document.getElementById("searchResults")
@@ -68,6 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 250)
   })
 })
+
+
 
 // ===== MOBILE SIDEBAR FUNCTIONALITY =====
 
