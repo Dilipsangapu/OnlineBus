@@ -695,10 +695,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="mobile-booking-label">Fare</div>
                     <div class="mobile-booking-value">₹${b.fare}</div>
                   </div>
-                  <div class="mobile-booking-detail">
-                    <div class="mobile-booking-label">From - To</div>
-                    <div class="mobile-booking-value">${b.passengerFrom || "N/A"} - ${b.passengerTo || "N/A"}</div>
-                  </div>
                 </div>
                 ${
                   b.status === "CONFIRMED"
