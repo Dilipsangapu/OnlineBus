@@ -25,12 +25,39 @@
     <!-- Search Buses -->
     <section id="searchSection" class="user-section active">
       <h2>🔍 Search Available Buses</h2>
-      <form id="searchForm" class="form-layout">
-        <input type="text" id="fromCity" placeholder="From City" required />
-        <input type="text" id="toCity" placeholder="To City" required />
-        <input type="date" id="travelDate" required />
-        <button type="submit" class="btn-submit">Search</button>
+      <!-- Aligned Labels and Inputs -->
+      <!-- Search Form -->
+      <form id="searchForm"
+            style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 20px;">
+
+        <div style="display: flex; flex-direction: column;">
+          <label for="fromCity" style="margin-bottom: 6px; font-weight: 600;">From</label>
+          <input type="text" id="fromCity" placeholder="From City" required
+                 style="padding: 10px; border: 1px solid #ccc; border-radius: 6px; height: 40px; width: 200px;" />
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+          <label for="toCity" style="margin-bottom: 6px; font-weight: 600;">To</label>
+          <input type="text" id="toCity" placeholder="To City" required
+                 style="padding: 10px; border: 1px solid #ccc; border-radius: 6px; height: 40px; width: 200px;" />
+        </div>
+
+        <div style="display: flex; flex-direction: column;">
+          <label for="travelDate" style="margin-bottom: 6px; font-weight: 600;">Date</label>
+          <input type="date" id="travelDate" required
+                 style="padding: 10px; border: 1px solid #ccc; border-radius: 6px; height: 40px; width: 200px;" />
+        </div>
+
+        <div style="margin-top: 28px;">
+          <button type="submit"
+                  style="padding: 10px 20px; background-color: #00b894; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            🔍 Search
+          </button>
+        </div>
+
       </form>
+
+
 
       <div id="searchResults" class="search-results"></div>
 
