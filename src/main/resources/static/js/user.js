@@ -772,10 +772,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="mobile-profile-value">Regular User</div>
               </div>
               <div class="mobile-profile-detail">
-                <div class="mobile-profile-label">Member Since</div>
-                <div class="mobile-profile-value">2024</div>
-              </div>
-              <div class="mobile-profile-detail">
                 <div class="mobile-profile-label">Total Bookings</div>
                 <div class="mobile-profile-value">Loading...</div>
               </div>
