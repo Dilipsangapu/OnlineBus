@@ -14,7 +14,7 @@ public class Booking {
     private String busId;
     private String travelDate;
     private String customerEmail;
-
+    private String BookingDate;
     private String seatNumber;
     private String seatType;
     private double fare;

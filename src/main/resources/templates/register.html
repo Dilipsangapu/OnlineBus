@@ -46,14 +46,32 @@
                 <div class="form-group"><input type="password" name="confirmPassword" required placeholder=" " /><label>Confirm Password</label></div>
 
                 <!-- OTP Section -->
-                <button type="button" class="register-btn" onclick="sendOtp()">Send OTP</button>
+                <button type="button" id="sendOtpBtn" class="register-btn" onclick="sendOtp()">Send OTP</button>
 
                 <div class="form-group" id="otpSection" style="display: none;">
                     <input type="text" id="otpInput" placeholder="Enter OTP" />
                 </div>
 
-                <button type="button" class="register-btn" id="verifyBtn" onclick="verifyOtp()" style="display: none;">Verify OTP</button>
-                <button type="button" class="register-btn" id="finalRegisterBtn" onclick="registerUser()" style="display: none;">Submit & Register</button>
+                <button
+                        type="button"
+                        id="verifyBtn"
+                        class="register-btn otp-btn"
+                        onclick="verifyOtp()"
+                        style="display: none"
+                >
+                    Verify OTP
+                </button>
+
+                <button
+                        type="button"
+                        id="finalRegisterBtn"
+                        class="register-btn final-register-btn"
+                        onclick="registerUser()"
+                        style="display: none;"
+                >
+                    Submit & Register
+                </button>
+
             </form>
 
             <p class="footer-note">Already have an account? <a th:href="@{/login}">Login here</a></p>
