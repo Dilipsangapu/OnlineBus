@@ -743,25 +743,34 @@ function selectBusForLayout(busId) {
 }
 
 function renderRedbusLayout(bus) {
-  const lowerDeck = document.getElementById("lowerDeck")
-  const upperDeck = document.getElementById("upperDeck")
-  if (!lowerDeck || !upperDeck) return
+  const lowerDeck = document.getElementById("lowerDeck");
+  const upperDeck = document.getElementById("upperDeck");
+  if (!lowerDeck || !upperDeck) return;
 
-  lowerDeck.innerHTML = ""
-  upperDeck.innerHTML = ""
+  lowerDeck.innerHTML = "";
+  upperDeck.innerHTML = "";
 
-  const totalSeats = bus.sleeperCount + bus.seaterCount
+  const totalSeats = bus.sleeperCount + bus.seaterCount;
   for (let i = 1; i <= totalSeats; i++) {
-    const type = i <= bus.sleeperCount ? "sleeper" : "seater"
-    const deck = type === "sleeper" ? "upper" : "lower"
-    const div = document.createElement("div")
-    div.className = `seat ${type}`
-    div.innerHTML = `${type === "sleeper" ? "🏋️" : "🛅"} S${i} <input type="number" placeholder="₹" value="500" min="0" />`
-    ;(deck === "upper" ? upperDeck : lowerDeck).appendChild(div)
+    const type = i <= bus.sleeperCount ? "sleeper" : "seater";
+    const deck = type === "sleeper" ? "upper" : "lower";
+    const seatNumber = `S${i}`;
+    const iconSrc = `/available-${type}.svg`; // points to /static/available-sleeper.svg etc.
+
+    const div = document.createElement("div");
+    div.className = `seat ${type}`;
+    div.innerHTML = `
+      <img src="${iconSrc}" alt="${type} seat" width="20" height="20" style="vertical-align: middle; margin-right: 5px;" />
+      ${seatNumber}
+      <input type="number" placeholder="₹" value="500" min="0" />
+    `;
+
+    (deck === "upper" ? upperDeck : lowerDeck).appendChild(div);
   }
 
-  switchDeck("lower")
+  switchDeck("lower");
 }
+
 
 function switchDeck(deck) {
   const lowerDeck = document.getElementById("lowerDeck")

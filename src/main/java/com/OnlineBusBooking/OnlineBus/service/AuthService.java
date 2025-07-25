@@ -24,10 +24,10 @@ public class AuthService {
 
     // ✅ Insert admin only once
     private void insertDefaultAdmin() {
-        if (userRepository.findByEmail("noreply.onlinebus.07@gmail.com").isEmpty()) {
+        if (userRepository.findByEmail("noreply.onlinebus.007@gmail.com").isEmpty()) {
             User admin = new User();
             admin.setName("Admin User");
-            admin.setEmail("noreply.onlinebus.07@gmail.com");
+            admin.setEmail("noreply.onlinebus.007@gmail.com");
             admin.setPhone("7788445511");
             admin.setAge(35);
             admin.setGender("Male");

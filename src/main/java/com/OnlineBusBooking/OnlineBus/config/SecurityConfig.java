@@ -83,6 +83,7 @@ public class SecurityConfig {
                                 "/", "/register", "/login", "/dashboard",
                                 "/admin-dashboard", "/agent-dashboard", "/process-login",
                                 "/css/**", "/js/**", "/images/**", "/fonts/**",
+                                "/available-*.svg", "/booked-*.svg", "/selected-*.svg",
                                 "/buses/update/**", "/buses/edit/**",
                                 "/buses/api/search", "/api/auth/**", "/api/agents/**",
                                 "/api/buses/**", "/buses/api/**", "/api/routes/**",

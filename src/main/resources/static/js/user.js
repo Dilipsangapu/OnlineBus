@@ -31,6 +31,15 @@
         document.head.appendChild(script)
       })
     }
+    function getSeatImage(seat, isBooked, isSelected) {
+      const type = seat.type.toLowerCase().replace(/\s+/g, "-") // seater or sleeper
+
+      if (isBooked) return `/booked-${type}.svg`
+      if (isSelected) return `/selected-${type}.svg`
+      return `/available-${type}.svg`
+    }
+
+
 
     // --------- INIT ---------
     document.addEventListener("DOMContentLoaded", () => {
@@ -308,45 +317,34 @@ document.addEventListener("DOMContentLoaded", () => {
       const container = document.createElement("div")
       container.className = "seat-deck"
 
-      deckSeats.forEach((seat) => {
-        const btn = document.createElement("button")
-        btn.className = "seat-btn" // always base class
+deckSeats.forEach((seat) => {
+  const seatWrapper = document.createElement("div")
+  seatWrapper.className = "seat-wrapper"
 
-        // Map seat types to correct CSS classes for shapes
-        let shapeClass = ""
-        if (seat.type === "seater") {
-          // For seater type, check deck to determine if it's lower (square) or upper (rectangle)
-          shapeClass = seat.deck === "lower" ? "lower-seater" : "upper"
-        } else if (seat.type === "sleeper") {
-          shapeClass = "sleeper"
-        } else {
-          // fallback
-          shapeClass = seat.type?.replace(/\s/g, "-").toLowerCase() || "seater"
-        }
+  const isBooked = window.bookedSeatNumbers.includes(seat.number)
+  const isSelected = selectedSeats.some((s) => s.number === seat.number)
 
-        btn.classList.add(shapeClass)
-        btn.setAttribute("data-seat-type", shapeClass)
+  const img = document.createElement("img")
+  img.src = getSeatImage(seat, isBooked, isSelected)
+  img.alt = `Seat ${seat.number}`
+  img.className = "seat-img"
+  img.style.cursor = isBooked ? "not-allowed" : "pointer"
+  img.style.width = "50px" // Adjust size as needed
 
-        btn.textContent = `${seat.number} (₹${seat.price})`
-        const isBooked = window.bookedSeatNumbers.includes(seat.number)
-        const isSelected = selectedSeats.some((s) => s.number === seat.number)
+  if (!isBooked) {
+    img.onclick = () => toggleSeat(seat, busId)
+    img.title = isSelected ? "Click to deselect" : "Click to select"
+  }
 
-        if (isBooked) {
-          btn.disabled = true
-          btn.classList.add("booked")
-          btn.setAttribute("aria-label", `Seat ${seat.number} is booked`)
-        } else if (isSelected) {
-          btn.classList.add("selected")
-          btn.onclick = () => toggleSeat(seat, busId)
-          btn.setAttribute("aria-label", `Seat ${seat.number} is selected`)
-        } else {
-          btn.classList.add("available")
-          btn.onclick = () => toggleSeat(seat, busId)
-          btn.setAttribute("aria-label", `Seat ${seat.number} is available`)
-        }
+  const label = document.createElement("div")
+  label.className = "seat-label"
+  label.textContent = seat.number
 
-        container.appendChild(btn)
-      })
+  seatWrapper.appendChild(img)
+  seatWrapper.appendChild(label)
+  container.appendChild(seatWrapper)
+})
+
       layoutDiv.appendChild(container)
     }
 
