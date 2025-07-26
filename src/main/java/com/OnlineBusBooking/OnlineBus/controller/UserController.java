@@ -330,4 +330,14 @@ public class UserController {
             return ResponseEntity.internalServerError().build();
         }
     }
+    @GetMapping("/passenger-details")
+    public String showPassengerFormPage(HttpSession session, Model model) {
+        if (session.getAttribute("email") == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute("email", session.getAttribute("email"));
+        model.addAttribute("name", session.getAttribute("name"));
+        return "passenger-details"; // Thymeleaf template name (without .html)
+    }
+
 }

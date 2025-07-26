@@ -101,12 +101,13 @@
 
     <!-- Profile -->
     <section id="profileSection" class="user-section">
-      <h2>👤 Your Profile</h2>
+      <h2>👤 <span th:text="${session.name}">Your Profile</span></h2>
       <div class="profile-card">
         <p><strong>Name:</strong> <span th:text="${session.name}"></span></p>
         <p><strong>Email:</strong> <span th:text="${session.email}"></span></p>
       </div>
     </section>
+
   </main>
 </div>
 

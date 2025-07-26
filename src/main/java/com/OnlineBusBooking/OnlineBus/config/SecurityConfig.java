@@ -10,7 +10,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,7 +20,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -90,7 +88,8 @@ public class SecurityConfig {
                                 "/api/search-buses", "/api/seats/**", "/api/schedule/**",
                                 "/api/**", "/edit-bus/**", "/agent/**",
                                 "/forgot-password", "/reset-password",
-                                "/api/payments/**"
+                                "/api/payments/**",
+                                "/user/passenger-details" // ✅ Added correct path
                         ).permitAll()
                         .requestMatchers("/user/api/**").permitAll()
                         .requestMatchers("/user/**").hasRole("USER")
@@ -112,7 +111,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*")); // For development only
+        configuration.setAllowedOrigins(Arrays.asList("*")); // For development
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "content-type"));

@@ -26,7 +26,7 @@ public class PaymentController {
     private PaymentRepository paymentRepository;
 
     @PostMapping("/create-order")
-    public ResponseEntity<String> createOrder(@RequestParam int amount, @RequestParam String currency) {
+    public ResponseEntity<Map<String, Object>> createOrder(@RequestParam int amount, @RequestParam String currency) {
         try {
             RazorpayClient razorpay = new RazorpayClient("rzp_test_38I5IEufjhiOFj", "XCrXx93If1q1cuILOpXcggmb");
 
@@ -37,12 +37,20 @@ public class PaymentController {
             orderRequest.put("payment_capture", true);
 
             Order order = razorpay.orders.create(orderRequest);
-            return ResponseEntity.ok(order.toString());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", order.get("id"));
+            response.put("amount", order.get("amount"));
+            response.put("currency", order.get("currency"));
+
+            return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.singletonMap("error", "Failed to create order"));
         }
     }
+
     @PostMapping("/save-success")
     public ResponseEntity<String> savePayment(@RequestBody Map<String, Object> data) {
         try {

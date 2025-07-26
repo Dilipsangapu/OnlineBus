@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Passenger Details</title>
+    <link rel="stylesheet" href="/css/user.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body data-email="${session.email}" data-name="${session.name}">
+<div class="passenger-details-container">
+    <h2>🧍 Passenger Details</h2>
+    <form id="passengerForm"></form>
+
+    <p><strong>Total Fare:</strong> ₹<span id="fareDisplay">0</span></p>
+    <button id="payBtn" disabled>💳 Pay & Book</button>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="/js/user.js"></script>
+</body>
+</html>
